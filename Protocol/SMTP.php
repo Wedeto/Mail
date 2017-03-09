@@ -25,67 +25,31 @@ namespace WASP\Mail\Protocol;
  */
 class SMTP extends AbstractProtocol
 {
-    /**
-     * The transport method for the socket
-     *
-     * @var string
-     */
+    /** The transport method for the socket */
     protected $transport = 'tcp';
 
-    /**
-     * Indicates that a session is requested to be secure
-     *
-     * @var string
-     */
+    /** Indicates that a session is requested to be secure */
     protected $secure;
 
-    /**
-     * Indicates an smtp session has been started by the HELO command
-     *
-     * @var bool
-     */
+    /** Indicates an smtp session has been started by the HELO command */
     protected $sess = false;
 
-    /**
-     * Indicates an smtp AUTH has been issued and authenticated
-     *
-     * @var bool
-     */
+    /** Indicates an smtp AUTH has been issued and authenticated */
     protected $auth = false;
 
-    /**
-     * Indicates a MAIL command has been issued
-     *
-     * @var bool
-     */
+    /** Indicates a MAIL command has been issued */
     protected $mail = false;
 
-    /**
-     * Indicates one or more RCTP commands have been issued
-     *
-     * @var bool
-     */
+    /** Indicates one or more RCTP commands have been issued */
     protected $rcpt = false;
 
-    /**
-     * Indicates that DATA has been issued and sent
-     *
-     * @var bool
-     */
+    /** Indicates that DATA has been issued and sent */
     protected $data = null;
 
-    /**
-     * Authentication username
-     *
-     * @var string
-     */
+    /** Authentication username */
     protected $username;
 
-    /**
-     * Authentication password
-     *
-     * @var string
-     */
+    /** Authentication password */
     protected $password;
 
 

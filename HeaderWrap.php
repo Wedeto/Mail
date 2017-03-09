@@ -29,11 +29,11 @@ class HeaderWrap
     /**
      * Wrap a long header line
      *
-     * @param  string          $value
+     * @param  string $value
      * @param  HeaderInterface $header
-     * @return string
+     * @return string The wrapped header value
      */
-    public static function wrap($value)
+    public static function wrap(string $value)
     {
         $encoding = Mime::isPrintable($value) ? "ASCII" : "UTF-8";
         if ($encoding === 'ASCII')
@@ -50,21 +50,21 @@ class HeaderWrap
      *
      * @param  string $value
      * @param  string $encoding
-     * @param  int    $lineLength maximum line-length, by default 998
+     * @param  int $lineLength maximum line-length, by default 998
      * @return string Returns the mime encode value without the last line ending
      */
-    public static function mimeEncodeValue($value, $encoding, $lineLength = 998)
+    public static function mimeEncodeValue(string $value, string $encoding, int $lineLength = 998)
     {
         return Mime::encodeQuotedPrintableHeader($value, $encoding, $lineLength, "\r\n");
     }
 
     /**
-     * Test if is possible apply MIME-encoding
+     * Test if it is possible to apply MIME-encoding
      *
-     * @param string $value
-     * @return bool
+     * @param string $value The value that should be encodede
+     * @return bool True when the value can be encoded
      */
-    public static function canBeEncoded($value)
+    public static function canBeEncoded(string $value)
     {
         // avoid any wrapping by specifying line length long enough
         // "test" -> 4

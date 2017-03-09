@@ -25,16 +25,16 @@ use WASP\Mail\MailException;
  */
 class Part
 {
-    public $type = Mime::TYPE_OCTETSTREAM;
-    public $encoding = Mime::ENCODING_8BIT;
-    public $id;
-    public $disposition;
-    public $filename;
-    public $description;
-    public $charset;
-    public $boundary;
-    public $location;
-    public $language;
+    protected $type = Mime::TYPE_OCTETSTREAM;
+    protected $encoding = Mime::ENCODING_8BIT;
+    protected $id;
+    protected $disposition;
+    protected $filename;
+    protected $description;
+    protected $charset;
+    protected $boundary;
+    protected $location;
+    protected $language;
     protected $content;
     protected $isStream = false;
     protected $filters = [];
@@ -95,7 +95,7 @@ class Part
      * @param string $id
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
-    public function setId($id)
+    public function setId(string $id)
     {
         $this->id = $id;
         return $this;
@@ -114,7 +114,7 @@ class Part
      * @param string $disposition
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
-    public function setDisposition($disposition)
+    public function setDisposition(string $disposition)
     {
         $this->disposition = $disposition;
         return $this;
@@ -133,7 +133,7 @@ class Part
      * @param string $description
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
-    public function setDescription($description)
+    public function setDescription(string $description)
     {
         $this->description = $description;
         return $this;
@@ -149,18 +149,17 @@ class Part
 
     /**
      * Set filename
-     * @param string $fileName
+     * @param string $filename
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
-    public function setFileName($fileName)
+    public function setFileName(string $filename)
     {
-        $this->filename = $fileName;
+        $this->filename = $filename;
         return $this;
     }
 
     /**
-     * Get filename
-     * @return string
+     * @return string The filename
      */
     public function getFileName()
     {
@@ -169,7 +168,7 @@ class Part
 
     /**
      * Set charset
-     * @param string $type
+     * @param string $charset The charset
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
     public function setCharset(string $charset)
@@ -179,8 +178,7 @@ class Part
     }
 
     /**
-     * Get charset
-     * @return string
+     * @return string The charset of the part
      */
     public function getCharset()
     {
@@ -189,7 +187,7 @@ class Part
 
     /**
      * Set boundary
-     * @param string $boundary
+     * @param string $boundary The boundary string
      * @return WASP\Mail\Mime\Part Provides fluent interface
      */
     public function setBoundary(string $boundary)
@@ -406,7 +404,6 @@ class Part
     /**
      * Create and return the array of headers for this MIME part
      *
-     * @access public
      * @param string $EOL The End-of-Line delimiter
      * @return array The list of headers
      */

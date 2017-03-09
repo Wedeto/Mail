@@ -47,50 +47,50 @@ class Mime
 
     // lookup-Tables for QuotedPrintable
     public static $qpKeys = array(
-        "\x00","\x01","\x02","\x03","\x04","\x05","\x06","\x07",
-        "\x08","\x09","\x0A","\x0B","\x0C","\x0D","\x0E","\x0F",
-        "\x10","\x11","\x12","\x13","\x14","\x15","\x16","\x17",
-        "\x18","\x19","\x1A","\x1B","\x1C","\x1D","\x1E","\x1F",
-        "\x7F","\x80","\x81","\x82","\x83","\x84","\x85","\x86",
-        "\x87","\x88","\x89","\x8A","\x8B","\x8C","\x8D","\x8E",
-        "\x8F","\x90","\x91","\x92","\x93","\x94","\x95","\x96",
-        "\x97","\x98","\x99","\x9A","\x9B","\x9C","\x9D","\x9E",
-        "\x9F","\xA0","\xA1","\xA2","\xA3","\xA4","\xA5","\xA6",
-        "\xA7","\xA8","\xA9","\xAA","\xAB","\xAC","\xAD","\xAE",
-        "\xAF","\xB0","\xB1","\xB2","\xB3","\xB4","\xB5","\xB6",
-        "\xB7","\xB8","\xB9","\xBA","\xBB","\xBC","\xBD","\xBE",
-        "\xBF","\xC0","\xC1","\xC2","\xC3","\xC4","\xC5","\xC6",
-        "\xC7","\xC8","\xC9","\xCA","\xCB","\xCC","\xCD","\xCE",
-        "\xCF","\xD0","\xD1","\xD2","\xD3","\xD4","\xD5","\xD6",
-        "\xD7","\xD8","\xD9","\xDA","\xDB","\xDC","\xDD","\xDE",
-        "\xDF","\xE0","\xE1","\xE2","\xE3","\xE4","\xE5","\xE6",
-        "\xE7","\xE8","\xE9","\xEA","\xEB","\xEC","\xED","\xEE",
-        "\xEF","\xF0","\xF1","\xF2","\xF3","\xF4","\xF5","\xF6",
-        "\xF7","\xF8","\xF9","\xFA","\xFB","\xFC","\xFD","\xFE",
+        "\x00", "\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07",
+        "\x08", "\x09", "\x0A", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F",
+        "\x10", "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17",
+        "\x18", "\x19", "\x1A", "\x1B", "\x1C", "\x1D", "\x1E", "\x1F",
+        "\x7F", "\x80", "\x81", "\x82", "\x83", "\x84", "\x85", "\x86",
+        "\x87", "\x88", "\x89", "\x8A", "\x8B", "\x8C", "\x8D", "\x8E",
+        "\x8F", "\x90", "\x91", "\x92", "\x93", "\x94", "\x95", "\x96",
+        "\x97", "\x98", "\x99", "\x9A", "\x9B", "\x9C", "\x9D", "\x9E",
+        "\x9F", "\xA0", "\xA1", "\xA2", "\xA3", "\xA4", "\xA5", "\xA6",
+        "\xA7", "\xA8", "\xA9", "\xAA", "\xAB", "\xAC", "\xAD", "\xAE",
+        "\xAF", "\xB0", "\xB1", "\xB2", "\xB3", "\xB4", "\xB5", "\xB6",
+        "\xB7", "\xB8", "\xB9", "\xBA", "\xBB", "\xBC", "\xBD", "\xBE",
+        "\xBF", "\xC0", "\xC1", "\xC2", "\xC3", "\xC4", "\xC5", "\xC6",
+        "\xC7", "\xC8", "\xC9", "\xCA", "\xCB", "\xCC", "\xCD", "\xCE",
+        "\xCF", "\xD0", "\xD1", "\xD2", "\xD3", "\xD4", "\xD5", "\xD6",
+        "\xD7", "\xD8", "\xD9", "\xDA", "\xDB", "\xDC", "\xDD", "\xDE",
+        "\xDF", "\xE0", "\xE1", "\xE2", "\xE3", "\xE4", "\xE5", "\xE6",
+        "\xE7", "\xE8", "\xE9", "\xEA", "\xEB", "\xEC", "\xED", "\xEE",
+        "\xEF", "\xF0", "\xF1", "\xF2", "\xF3", "\xF4", "\xF5", "\xF6",
+        "\xF7", "\xF8", "\xF9", "\xFA", "\xFB", "\xFC", "\xFD", "\xFE",
         "\xFF"
     );
 
     public static $qpReplaceValues = array(
-        "=00","=01","=02","=03","=04","=05","=06","=07",
-        "=08","=09","=0A","=0B","=0C","=0D","=0E","=0F",
-        "=10","=11","=12","=13","=14","=15","=16","=17",
-        "=18","=19","=1A","=1B","=1C","=1D","=1E","=1F",
-        "=7F","=80","=81","=82","=83","=84","=85","=86",
-        "=87","=88","=89","=8A","=8B","=8C","=8D","=8E",
-        "=8F","=90","=91","=92","=93","=94","=95","=96",
-        "=97","=98","=99","=9A","=9B","=9C","=9D","=9E",
-        "=9F","=A0","=A1","=A2","=A3","=A4","=A5","=A6",
-        "=A7","=A8","=A9","=AA","=AB","=AC","=AD","=AE",
-        "=AF","=B0","=B1","=B2","=B3","=B4","=B5","=B6",
-        "=B7","=B8","=B9","=BA","=BB","=BC","=BD","=BE",
-        "=BF","=C0","=C1","=C2","=C3","=C4","=C5","=C6",
-        "=C7","=C8","=C9","=CA","=CB","=CC","=CD","=CE",
-        "=CF","=D0","=D1","=D2","=D3","=D4","=D5","=D6",
-        "=D7","=D8","=D9","=DA","=DB","=DC","=DD","=DE",
-        "=DF","=E0","=E1","=E2","=E3","=E4","=E5","=E6",
-        "=E7","=E8","=E9","=EA","=EB","=EC","=ED","=EE",
-        "=EF","=F0","=F1","=F2","=F3","=F4","=F5","=F6",
-        "=F7","=F8","=F9","=FA","=FB","=FC","=FD","=FE",
+        "=00", "=01", "=02", "=03", "=04", "=05", "=06", "=07",
+        "=08", "=09", "=0A", "=0B", "=0C", "=0D", "=0E", "=0F",
+        "=10", "=11", "=12", "=13", "=14", "=15", "=16", "=17",
+        "=18", "=19", "=1A", "=1B", "=1C", "=1D", "=1E", "=1F",
+        "=7F", "=80", "=81", "=82", "=83", "=84", "=85", "=86",
+        "=87", "=88", "=89", "=8A", "=8B", "=8C", "=8D", "=8E",
+        "=8F", "=90", "=91", "=92", "=93", "=94", "=95", "=96",
+        "=97", "=98", "=99", "=9A", "=9B", "=9C", "=9D", "=9E",
+        "=9F", "=A0", "=A1", "=A2", "=A3", "=A4", "=A5", "=A6",
+        "=A7", "=A8", "=A9", "=AA", "=AB", "=AC", "=AD", "=AE",
+        "=AF", "=B0", "=B1", "=B2", "=B3", "=B4", "=B5", "=B6",
+        "=B7", "=B8", "=B9", "=BA", "=BB", "=BC", "=BD", "=BE",
+        "=BF", "=C0", "=C1", "=C2", "=C3", "=C4", "=C5", "=C6",
+        "=C7", "=C8", "=C9", "=CA", "=CB", "=CC", "=CD", "=CE",
+        "=CF", "=D0", "=D1", "=D2", "=D3", "=D4", "=D5", "=D6",
+        "=D7", "=D8", "=D9", "=DA", "=DB", "=DC", "=DD", "=DE",
+        "=DF", "=E0", "=E1", "=E2", "=E3", "=E4", "=E5", "=E6",
+        "=E7", "=E8", "=E9", "=EA", "=EB", "=EC", "=ED", "=EE",
+        "=EF", "=F0", "=F1", "=F2", "=F3", "=F4", "=F5", "=F6",
+        "=F7", "=F8", "=F9", "=FA", "=FB", "=FC", "=FD", "=FE",
         "=FF"
     );
 
@@ -117,7 +117,7 @@ class Mime
      */
     public static function isPrintable(string $str)
     {
-        return (strcspn($str, static::$qpKeysString) == strlen($str));
+        return (strcspn($str, self::$qpKeysString) == strlen($str));
     }
 
     /**
@@ -172,7 +172,7 @@ class Mime
     private static function _encodeQuotedPrintable(string $str)
     {
         $str = str_replace('=', '=3D', $str);
-        $str = str_replace(static::$qpKeys, static::$qpReplaceValues, $str);
+        $str = str_replace(self::$qpKeys, self::$qpReplaceValues, $str);
         $str = rtrim($str);
         return $str;
     }
@@ -189,7 +189,12 @@ class Mime
      * @param string $lineEnd Defaults to {@link LINEEND}
      * @return string
      */
-    public static function encodeQuotedPrintableHeader(string $str, string $charset, int $lineLength = self::LINELENGTH, string $lineEnd = self::LINEEND)
+    public static function encodeQuotedPrintableHeader(
+        string $str,
+        string $charset,
+        int $lineLength = self::LINELENGTH, 
+        string $lineEnd = self::LINEEND
+    )
     {
         // Reduce line-length by the length of the required delimiter, charsets and encoding
         $prefix = sprintf('=?%s?Q?', $charset);
@@ -208,15 +213,16 @@ class Mime
         while (strlen($str) > 0)
         {
             $currentLine = max(count($lines) - 1, 0);
-            $token = static::getNextQuotedPrintableToken($str);
+            $token = self::getNextQuotedPrintableToken($str);
             $substr = substr($str, strlen($token));
             $str = (false === $substr) ? '' : $substr;
 
             $tmp .= $token;
             if ($token === '=20')
             {
-                // only if we have a single char token or space, we can append the
-                // tempstring it to the current line or start a new line if necessary.
+                // Only if we have a single char token or space, we can append
+                // the tempstring it to the current line or start a new line if
+                // necessary.
                 $lineLimitReached = (strlen($lines[$currentLine] . $tmp) > $lineLength);
                 $noCurrentLine = ($lines[$currentLine] === '');
                 if ($noCurrentLine && $lineLimitReached)
@@ -234,12 +240,14 @@ class Mime
                 }
                 $tmp = '';
             }
-            // don't forget to append the rest to the last line
+
+            // Don't forget to append the rest to the last line
             if (strlen($str) === 0)
                 $lines[$currentLine] .= $tmp;
         }
 
-        // assemble the lines together by pre- and appending delimiters, charset, encoding.
+        // Assemble the lines together by pre- and appending delimiters,
+        // charset, encoding.
         for ($i = 0, $count = count($lines); $i < $count; ++$i)
             $lines[$i] = " " . $prefix . $lines[$i] . "?=";
         $str = trim(implode($lineEnd, $lines));
@@ -249,10 +257,10 @@ class Mime
     /**
      * Retrieves the first token from a quoted printable string.
      *
-     * @param  string $str
-     * @return string
+     * @param string $str The string to get the next token from
+     * @return string The first token
      */
-    private static function getNextQuotedPrintableToken($str)
+    private static function getNextQuotedPrintableToken(string $str)
     {
         if (substr($str, 0, 1) === "=")
             $token = substr($str, 0, 3);
@@ -277,7 +285,7 @@ class Mime
         $suffix = '?=';
         $remainingLength = $lineLength - strlen($prefix) - strlen($suffix);
 
-        $encodedValue = static::encodeBase64($str, $remainingLength, $lineEnd);
+        $encodedValue = self::encodeBase64($str, $remainingLength, $lineEnd);
         $encodedValue = str_replace($lineEnd, $suffix . $lineEnd . ' ' . $prefix, $encodedValue);
         $encodedValue = $prefix . $encodedValue . $suffix;
         return $encodedValue;
@@ -290,7 +298,7 @@ class Mime
      * @param string $str
      * @param int $lineLength Defaults to {@link LINELENGTH}
      * @param string $lineEnd Defaults to {@link LINEEND}
-     * @return string
+     * @return string The encoded and wrapped string
      */
     public static function encodeBase64($str, $lineLength = self::LINELENGTH, $lineEnd = self::LINEEND)
     {
@@ -299,16 +307,15 @@ class Mime
     }
 
     /**
-     * Constructor
+     * Create a new Mime encoding utility instance
      *
-     * @param null|string $boundary
-     * @access public
+     * @param string $boundary
      */
-    public function __construct($boundary = null)
+    public function __construct($boundary = "")
     {
         // This string needs to be somewhat unique
-        if ($boundary === null)
-            $this->boundary = '=_' . md5(microtime(1) . static::$makeUnique++);
+        if (empty($boundary))
+            $this->boundary = '=_' . md5(microtime(1) . self::$makeUnique++);
         else
             $this->boundary = $boundary;
     }
@@ -316,29 +323,28 @@ class Mime
     /**
      * Encode the given string with the given encoding.
      *
-     * @param string $str
-     * @param string $encoding
-     * @param string $EOL EOL string; defaults to {@link LINEEND}
-     * @return string
+     * @param string $str The string to encode
+     * @param string $encoding The encoding to use
+     * @param string $EOL EOL string; defaults to \r\n
+     * @return string The encoded string
      */
     public static function encode(string $str, string $encoding, string $EOL = self::LINEEND)
     {
         switch ($encoding)
         {
             case self::ENCODING_BASE64:
-                return static::encodeBase64($str, self::LINELENGTH, $EOL);
+                return self::encodeBase64($str, self::LINELENGTH, $EOL);
             case self::ENCODING_QUOTEDPRINTABLE:
-                return static::encodeQuotedPrintable($str, self::LINELENGTH, $EOL);
+                return self::encodeQuotedPrintable($str, self::LINELENGTH, $EOL);
             default:
                 return $str;
         }
     }
 
     /**
-     * Return a MIME boundary
+     * Return the MIME boundary
      *
-     * @access public
-     * @return string
+     * @return string The MIME boundary
      */
     public function boundary()
     {
@@ -348,9 +354,8 @@ class Mime
     /**
      * Return a MIME boundary line
      *
-     * @param string $EOL Defaults to {@link LINEEND}
-     * @access public
-     * @return string
+     * @param string $EOL Defaults to \r\n
+     * @return string The MIME starting delimiter
      */
     public function boundaryLine(string $EOL = self::LINEEND)
     {
@@ -360,9 +365,8 @@ class Mime
     /**
      * Return MIME ending
      *
-     * @param string $EOL Defaults to {@link LINEEND}
-     * @access public
-     * @return string
+     * @param string $EOL Defaults to \r\n
+     * @return string The MIME end delimiter
      */
     public function mimeEnd(string $EOL = self::LINEEND)
     {
@@ -374,8 +378,8 @@ class Mime
      *
      * Extract parts according to https://tools.ietf.org/html/rfc2047#section-2
      *
-     * @param string $str
-     * @return string
+     * @param string $str The string to perform detection on
+     * @return string The mime charset
      */
     public static function mimeDetectCharset(string $str)
     {

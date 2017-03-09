@@ -42,46 +42,25 @@ abstract class AbstractProtocol
     /** The connection configuration */
     protected $config;
 
-    /**
-     * Maximum of the transaction log
-     * @var int
-     */
+    /** Maximum of the transaction log */
     protected $maximumLog = 64;
 
-    /**
-     * Hostname or IP address of remote server
-     * @var string
-     */
+    /** Hostname or IP address of remote server */
     protected $host;
 
-    /**
-     * Port number of connection
-     * @var int
-     */
+    /** Port number of connection */
     protected $port;
 
-    /**
-     * Socket connection resource
-     * @var resource
-     */
+    /** Socket connection resource */
     protected $socket;
 
-    /**
-     * Last request sent to server
-     * @var string
-     */
+    /** Last request sent to server */
     protected $request;
 
-    /**
-     * Array of server responses to last request
-     * @var array
-     */
+    /** Array of server responses to last request */
     protected $response;
 
-    /**
-     * Log of mail requests and server responses for a session
-     * @var array
-     */
+    /** Log of mail requests and server responses for a session */
     private $log = array();
 
     /**
@@ -184,7 +163,7 @@ abstract class AbstractProtocol
      *
      * @param string $value new transaction
      */
-    protected function _addLog($value)
+    protected function _addLog(string $value)
     {
         if ($this->maximumLog >= 0 && count($this->log) >= $this->maximumLog)
             array_shift($this->log);
@@ -201,7 +180,7 @@ abstract class AbstractProtocol
      * @throws Exception\RuntimeException
      * @return bool
      */
-    protected function _connect($remote)
+    protected function _connect(string $remote)
     {
         $errorNum = 0;
         $errorStr = '';
@@ -246,7 +225,7 @@ abstract class AbstractProtocol
      * @throws Exception\RuntimeException
      * @return int|bool Number of bytes written to remote host
      */
-    protected function _send($request)
+    protected function _send(string $request)
     {
         if (!is_resource($this->socket))
             throw new ProtocolException('No connection has been established to ' . $this->host);
@@ -267,16 +246,16 @@ abstract class AbstractProtocol
      * Get a line from the stream.
      *
      * @param  int $timeout Per-request timeout value if applicable
-     * @throws Exception\RuntimeException
-     * @return string
+     * @throws ProtocolException
+     * @return string The read line
      */
-    protected function _receive($timeout = null)
+    protected function _receive(int $timeout = 0)
     {
         if (!is_resource($this->socket))
             throw new ProtocolException('No connection has been established to ' . $this->host);
 
         // Adapters may wish to supply per-commend timeouts according to appropriate RFC
-        if ($timeout !== null)
+        if ($timeout > 0)
             stream_set_timeout($this->socket, $timeout);
 
         // Retrieve response
@@ -308,7 +287,7 @@ abstract class AbstractProtocol
      * @throws WASP\Mail\Protocol\ProtocolException
      * @return string Last line of response string
      */
-    protected function _expect($code, $timeout = null)
+    protected function _expect($code, int $timeout = 0)
     {
         $this->response = array();
         $errMsg = '';

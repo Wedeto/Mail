@@ -23,7 +23,10 @@ namespace WASP\Mail\Mime;
  */
 class Message
 {
+    /** All parts attached to this message */
     protected $parts = array();
+
+    /** The Mime utility */
     protected $mime = null;
 
     /**
@@ -161,7 +164,7 @@ class Message
      * @param int $partnum
      * @return array
      */
-    public function getPartHeadersArray($partnum)
+    public function getPartHeadersArray(int $partnum)
     {
         return $this->parts[$partnum]->getHeadersArray();
     }
@@ -173,7 +176,7 @@ class Message
      * @param string $EOL
      * @return string
      */
-    public function getPartHeaders($partnum, $EOL = Mime::LINEEND)
+    public function getPartHeaders(int $partnum, string $EOL = Mime::LINEEND)
     {
         return $this->parts[$partnum]->getHeaders($EOL);
     }
@@ -185,7 +188,7 @@ class Message
      * @param string $EOL
      * @return string
      */
-    public function getPartContent($partnum, $EOL = Mime::LINEEND)
+    public function getPartContent(int $partnum, string $EOL = Mime::LINEEND)
     {
         return $this->parts[$partnum]->getContent($EOL);
     }

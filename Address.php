@@ -20,9 +20,15 @@ namespace WASP\Mail;
 
 use WASP\Mail\Mime\Mime;
 
+/**
+ * Represent an e-mail address, and convert it to a string ready for e-mail sending
+ */
 class Address 
 {
+    /** The e-mail address */
     protected $email;
+
+    /** The name */
     protected $name;
 
     /**

@@ -25,27 +25,21 @@ class Message
 {
     const EOL = "\r\n";
 
-    /**
-     * Content of the message
-     *
-     * @var string|object
-     */
+    /** Content of the message */
     protected $body;
 
-    /**
-     * @var Headers
-     */
+    /** The array of headers */
     protected $headers = array();
 
     /**
-     * Message encoding
-     *
-     * Used to determine whether or not to encode headers; defaults to ASCII.
-     *
-     * @var string
+     * Message encoding. Used to determine whether or not to encode headers;
+     * defaults to ASCII.
      */
     protected $encoding = 'ASCII';
 
+    /**
+     * Create the message, set the date
+     */
     public function __construct()
     {
         $this->headers['Date'] = date('r');
@@ -96,7 +90,7 @@ class Message
      * @param string $name The header to normalize
      * @return string The normalized header name
      */
-    protected static function normalizeHeader($name)
+    protected static function normalizeHeader(string $name)
     {
         $name = strtolower($name);
         $name = str_replace('-', ' ', $name);
@@ -160,7 +154,7 @@ class Message
      * @param string $name The recipient's name. Omit when using an array as $address
      * @return Message
      */
-    public function setFrom($address, $name = null)
+    public function setFrom(string $address, $name = null)
     {
         $this->headers['From'] = array();
         return $this->addFrom($address, $name);
@@ -169,7 +163,7 @@ class Message
     /**
      * Add a set of addresses to the specified header
      */
-    protected function addAddresses($header, $address, $name)
+    protected function addAddresses(string $header, $address, $name)
     {
         $header = self::normalizeHeader($header);
 
@@ -211,7 +205,7 @@ class Message
      * Get the list of addresses for the specified header
      * @return array List of Address objects
      */
-    protected function getAddresses($header)
+    protected function getAddresses(string $header)
     {
         $name = self::normalizeHeader($header);
         if (!isset($this->headers[$name]))
@@ -385,10 +379,10 @@ class Message
     }
 
     /**
-     * setSender
+     * Set the envelope sender of the e-mail
      *
-     * @param mixed $address E-mail address
-     * @param string|null $name
+     * @param mixed $address E-mail address of the sender
+     * @param string|null $name The name of the sender
      * @return WASP\Mail\Message Provides fluent interface
      */
     public function setSender(string $address, string $name)
@@ -413,7 +407,7 @@ class Message
     /**
      * Set the message subject header value
      *
-     * @param string $subject
+     * @param string $subject The subject ot set
      * @return WASP\Mail\Message Provides fluent interface
      */
     public function setSubject(string $subject)
@@ -423,9 +417,7 @@ class Message
     }
 
     /**
-     * Get the message subject header value
-     *
-     * @return null|string
+     * @return string The subject of the message. Null if not set
      */
     public function getSubject()
     {
