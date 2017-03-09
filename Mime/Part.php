@@ -23,13 +23,13 @@ use WASP\Mail\MailException;
 /**
  * Class representing a MIME part.
  */
-class Part
+class Part implements PartInterface
 {
     protected $type = Mime::TYPE_OCTETSTREAM;
     protected $encoding = Mime::ENCODING_8BIT;
     protected $id;
     protected $disposition;
-    protected $filename;
+    protected $filename = '';
     protected $description;
     protected $charset;
     protected $boundary;
@@ -99,6 +99,17 @@ class Part
     {
         $this->id = $id;
         return $this;
+    }
+
+    /**
+     * Generate id based on timestamp and filename
+     * @return string The generated and set part ID
+     */
+    public function generateId()
+    {
+        $data = sha1(microtime(true) . $this->filename);
+        $this->setId(substr($data, 0, 8) . $this->filename);
+        return $this->getId();
     }
 
     /**

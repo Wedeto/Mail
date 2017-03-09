@@ -27,17 +27,35 @@ use WASP\Mail\Mime\Mime;
  */
 class Attachment extends Part
 {
-    public function __construct(string $filename, $mime = null)
+    /**
+     * Create an attachment
+     * @param string $filename The name of the file. Provide a full path to read the file
+     * @param resource $resource The resource to attach. If null, $filename is opened
+     * @param string $mime The mime type. If empty, it will be deduced from the file
+     */
+    public function __construct(string $filename, $resource = null, string $mime = "")
     {
-        if (!file_exists($filename) || !is_readable($filename))
-            throw new IOException("Cannot read file " . $filename);
+        if (!is_resource($resource))
+        {
+            if (!file_exists($filename) || !is_readable($filename))
+                throw new IOException("Cannot read file " . $filename);
+        }
 
         $basename = basename($filename);
-        if (empty($mime))
+        if (empty($mime) && is_readable($filename))
             $mime = ResponseTypes::getFromFile($filename);
+        else
+            $mime = ResponseTypes::extractFromPath($filename);
 
-        $res = fopen($filename, "r");
-        parent::__construct($res);
+        // Still empty Mime? Use a generic type
+        if (empty($mime))
+            $mime = Mime::TYPE_OCTETSTREAM;
+
+        // Open the file if no resource was provided
+        if (!is_resource($resource))
+            $resource = fopen($filename, "r");
+
+        parent::__construct($resource);
 
         $this->setFilename($basename);
         $this->setDisposition(Mime::DISPOSITION_ATTACHMENT);

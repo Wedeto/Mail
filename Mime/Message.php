@@ -21,13 +21,39 @@ namespace WASP\Mail\Mime;
 /**
  * Class representing a Mime message
  */
-class Message
+class Message implements PartInterface
 {
     /** All parts attached to this message */
     protected $parts = array();
 
     /** The Mime utility */
     protected $mime = null;
+
+    /** The content type */
+    protected $typpe = Mime::MULTIPART_MIXED;
+
+    /**
+     * Set content type of the Mime message. Only used when the message is
+     * added itself as a Mime part.
+     *
+     * @param string $type
+     * @return WASP\Mail\Mime\Part Provides fluent interface
+     */
+    public function setType(string $type = Mime::MULTIPART_MIXED)
+    {
+        if (substr($type, 0, 10) !== "multipart/")
+            throw new \InvalidArgumentException("A mime message should be multipart/*");
+        $this->type = $type;
+        return $this;
+    }
+
+    /**
+     * @return string The content type of the Mime message
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
 
     /**
      * Returns the list of all WASP\Mail\Mime\Part in the message
@@ -52,10 +78,10 @@ class Message
     /**
      * Append a new WASP\Mail\Mime\Part to the current message
      *
-     * @param \WASP\Mail\Mime\Part $part
+     * @param \WASP\Mail\Mime\PartInterface $part
      * @throws Exception\InvalidArgumentException
      */
-    public function addPart(Part $part)
+    public function addPart(PartInterface $part)
     {
         foreach ($this->getParts() as $key => $row)
         {
@@ -69,6 +95,24 @@ class Message
         }
 
         $this->parts[] = $part;
+    }
+
+    /**
+     * Remove a part from the message
+     * @param WASP\Mail\Mime\PartInterface The part to remove
+     * @return bool True if the part was removed, false if it was not found
+     */
+    public function removePart(PartInterface $part)
+    {
+        foreach ($this->parts as $key => $cpart)
+        {
+            if ($cpart === $part)
+            {
+                unset($this->parts[$key]);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -191,5 +235,56 @@ class Message
     public function getPartContent(int $partnum, string $EOL = Mime::LINEEND)
     {
         return $this->parts[$partnum]->getContent($EOL);
+    }
+
+    /**
+     * The following three methods implement the PartInterface, which allows
+     * a Mime message to be added as a part to another Mime message.
+     */
+
+    /**
+     * Get the Content of the current Mime Part in the given encoding.
+     *
+     * @param string $EOL The End-of-Line delimiter
+     * @return string The encoded string
+     */
+    public function getContent(string $EOL = Mime::LINEEND)
+    {
+        return $this->generateMessage($EOL);
+    }
+
+    /**
+     * Create and return the array of headers for this MIME part
+     *
+     * @param string $EOL The End-of-Line delimiter
+     * @return array The list of headers
+     */
+    public function getHeadersArray(string $EOL = Mime::LINEEND)
+    {
+        $mime = $this->getMime();
+        $boundary = $mime->boundary();
+
+        $contentType = $this->type;
+        $contentType .= ';' . $EOL
+                      . " boundary=\"" . $boundary . '"';
+
+        $headers[] = ['Content-Type', $contentType];
+        return $headers;
+    }
+
+    /**
+     * Return the headers for this part as a string
+     *
+     * @param string $EOL The End-of-Line delimiter
+     * @return string The list of headers, combined into one string, glued
+     *                together with $EOL
+     */
+    public function getHeaders(string $EOL = Mime::LINEEND)
+    {
+        $res = '';
+        foreach ($this->getHeadersArray($EOL) as $header)
+            $res .= $header[0] . ': ' . $header[1] . $EOL;
+
+        return $res;
     }
 }
