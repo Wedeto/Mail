@@ -18,7 +18,7 @@
 
 namespace WASP\Mail\Mime;
 
-use WASP\Http\ResponseTypes;
+use WASP\HTTP\ResponseTypes;
 use WASP\IOException;
 use WASP\Mail\Mime\Mime;
 
