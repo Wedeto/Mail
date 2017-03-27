@@ -18,13 +18,9 @@
 
 namespace WASP\Mail\Protocol;
 
-use WASP\ErrorInterceptor;
-
 /**
  * Provides low-level methods for concrete adapters to communicate with a
  * remote mail server and track requests and responses.
- *
- * @todo Implement proxy settings
  */
 abstract class AbstractProtocol
 {

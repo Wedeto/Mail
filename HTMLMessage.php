@@ -47,7 +47,7 @@ class HTMLMessage extends Message
         $this->setContentType(Mime\Mime::MULTIPART_ALTERNATIVE);
     }
 
-    public function setContentType($type)
+    public function setContentType(string $type)
     {
         $mime = $this->body->getMime();
         $header = $type . ';' . self::EOL . ' boundary="' . $mime->boundary() . '"';
@@ -96,7 +96,7 @@ class HTMLMessage extends Message
      * @param string $mime The Mime type. If empty it will be deduced from the file
      * @return WASP\Mail\Mime\Attachment The attachment object
      */
-    public function attach(string $filename, $resource = null, $mime = "")
+    public function attach(string $filename, $resource = null, string $mime = "")
     {
         if ($this->message_wrapper === null)
         {
@@ -129,7 +129,7 @@ class HTMLMessage extends Message
      * @param string $mime The Mime type. If empty it will be deduced from the file
      * @return string The Mime part ID, with a cid: prefix so it can be used directly.
      */
-    public function embed(string $filename, $resource = null, $mime = "")
+    public function embed(string $filename, $resource = null, string $mime = "")
     {
         if ($this->html_message === null)
         {

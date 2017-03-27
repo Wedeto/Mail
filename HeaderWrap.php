@@ -82,6 +82,6 @@ class HeaderWrap
 
         $encoded = iconv_mime_encode('x-test', $value, $preferences);
 
-        return (false !== $encoded);
+        return $encoded !== false;
     }
 }

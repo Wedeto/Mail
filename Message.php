@@ -66,7 +66,7 @@ class Message
      * @param  string $encoding
      * @return Message
      */
-    public function setEncoding($encoding)
+    public function setEncoding(string $encoding)
     {
         $this->encoding = $encoding;
         $this->getHeaders()->setEncoding($encoding);
@@ -154,7 +154,7 @@ class Message
      * @param string $name The recipient's name. Omit when using an array as $address
      * @return Message
      */
-    public function setFrom(string $address, $name = null)
+    public function setFrom(string $address, string $name = null)
     {
         $this->headers['From'] = array();
         return $this->addFrom($address, $name);
@@ -170,11 +170,11 @@ class Message
         if (!isset($this->headers[$header]))
             $this->headers[$header] = array();
 
-        if (is_string($address) || $address instanceof Address)
-        {
-            if (!empty($name))
-                $address = array($address => $name);
-        }
+        if (is_string($address))
+            $address = [new Address($address, $name)];
+
+        if ($address instanceof Address)
+            $address = [$address];
 
         if (!is_array($address) && !($address instanceof \Traversable))
             throw new MailException("Invalid address provided");
