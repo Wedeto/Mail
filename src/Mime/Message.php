@@ -1,12 +1,35 @@
 <?php
-/**
- * This is part of WASP, the Web Application Software Platform.
- * This class is adapted from Zend/Mime/Message
- *
- * The Zend framework is published on the New BSD license, and as such,
- * this class is also covered by the New BSD license as a derivative work.
- * The original copyright notice is maintained below.
- */
+/*
+This is part of Wedeto, the WEb DEvelopment TOolkit.
+Wedeto\Mail is published under the BSD 3-Clause License.
+
+Wedeto\Mail\Mime\Message was adapted from Zend\Mime\Message.
+The modifications are: Copyright 2017, Egbert van der Wal.
+
+The original source code is copyright Zend Technologies USA Inc. The original
+licence information is included below.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. Redistributions in binary form
+must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with
+the distribution. Neither the name of Zend or Rogue Wave Software, nor the
+names of its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS SOFTWARE IS
+PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+*/
 
 /**
  * Zend Framework (http://framework.zend.com/)
@@ -16,7 +39,7 @@
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace WASP\Mail\Mime;
+namespace Wedeto\Mail\Mime;
 
 /**
  * Class representing a Mime message
@@ -37,7 +60,7 @@ class Message implements PartInterface
      * added itself as a Mime part.
      *
      * @param string $type
-     * @return WASP\Mail\Mime\Part Provides fluent interface
+     * @return Wedeto\Mail\Mime\Part Provides fluent interface
      */
     public function setType(string $type = Mime::MULTIPART_MIXED)
     {
@@ -56,7 +79,7 @@ class Message implements PartInterface
     }
 
     /**
-     * Returns the list of all WASP\Mail\Mime\Part in the message
+     * Returns the list of all Wedeto\Mail\Mime\Part in the message
      *
      * @return array The list of mime Parts
      */
@@ -66,7 +89,7 @@ class Message implements PartInterface
     }
 
     /**
-     * Sets the given array of WASP\Mail\Mime\Part as the array for the message
+     * Sets the given array of Wedeto\Mail\Mime\Part as the array for the message
      *
      * @param array $parts
      */
@@ -76,9 +99,9 @@ class Message implements PartInterface
     }
 
     /**
-     * Append a new WASP\Mail\Mime\Part to the current message
+     * Append a new Wedeto\Mail\Mime\Part to the current message
      *
-     * @param \WASP\Mail\Mime\PartInterface $part
+     * @param \Wedeto\Mail\Mime\PartInterface $part
      * @throws Exception\InvalidArgumentException
      */
     public function addPart(PartInterface $part)
@@ -99,7 +122,7 @@ class Message implements PartInterface
 
     /**
      * Remove a part from the message
-     * @param WASP\Mail\Mime\PartInterface The part to remove
+     * @param Wedeto\Mail\Mime\PartInterface The part to remove
      * @return bool True if the part was removed, false if it was not found
      */
     public function removePart(PartInterface $part)
@@ -127,12 +150,12 @@ class Message implements PartInterface
     }
 
     /**
-     * Set WASP\Mail\Mime\Mime object for the message
+     * Set Wedeto\Mail\Mime\Mime object for the message
      *
      * This can be used to set the boundary specifically or to use a subclass of
-     * WASP\Mail\Mime for generating the boundary.
+     * Wedeto\Mail\Mime for generating the boundary.
      *
-     * @param \WASP\Mail\Mime\Mime $mime
+     * @param \Wedeto\Mail\Mime\Mime $mime
      */
     public function setMime(Mime $mime)
     {
@@ -140,12 +163,12 @@ class Message implements PartInterface
     }
 
     /**
-     * Returns the WASP\Mail\Mime\Mime object in use by the message
+     * Returns the Wedeto\Mail\Mime\Mime object in use by the message
      *
      * If the object was not present, it is created and returned. Can be used to
      * determine the boundary used in this message.
      *
-     * @return \WASP\Mail\Mime\Mime
+     * @return \Wedeto\Mail\Mime\Mime
      */
     public function getMime()
     {
@@ -162,12 +185,12 @@ class Message implements PartInterface
      * only one part is present, the content of this part is returned. If no
      * part had been added, an empty string is returned.
      *
-     * Parts are separated by the mime boundary as defined in WASP\Mail\Mime\Mime. If
-     * {@link setMime()} has been called before this method, the WASP\Mail\Mime\Mime
-     * object set by this call will be used. Otherwise, a new WASP\Mail\Mime\Mime object
+     * Parts are separated by the mime boundary as defined in Wedeto\Mail\Mime\Mime. If
+     * {@link setMime()} has been called before this method, the Wedeto\Mail\Mime\Mime
+     * object set by this call will be used. Otherwise, a new Wedeto\Mail\Mime\Mime object
      * is generated and used.
      *
-     * @param string $EOL EOL string; defaults to {@link WASP\Mail\Mime\Mime::LINEEND}
+     * @param string $EOL EOL string; defaults to {@link Wedeto\Mail\Mime\Mime::LINEEND}
      * @return string
      */
     public function generateMessage(string $EOL = Mime::LINEEND)

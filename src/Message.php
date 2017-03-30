@@ -1,25 +1,48 @@
 <?php
-/**
- * This is part of WASP, the Web Application Software Platform.
- * This class is adapted from Zend/Mail/Message
- *
- * The Zend framework is published on the New BSD license, and as such,
- * this class is also covered by the New BSD license as a derivative work.
- * The original copyright notice is maintained below.
- */
+/*
+This is part of Wedeto, the WEb DEvelopment TOolkit.
+Wedeto\Mail is published under the BSD 3-Clause License.
+
+Wedeto\Mail\Message was adapted from Zend\Mail\Message.
+The modifications are: Copyright 2017, Egbert van der Wal.
+
+The original source code is copyright Zend Technologies USA Inc. The original
+licence information is included below.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. Redistributions in binary form
+must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with
+the distribution. Neither the name of Zend or Rogue Wave Software, nor the
+names of its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS SOFTWARE IS
+PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+*/
 
 /**
  * Zend Framework (http://framework.zend.com/)
  *
  * @link      http://github.com/zendframework/zf2 for the canonical source repository
- * @copyright Copyright (c) 2005-2016 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright Copyright (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace WASP\Mail;
+namespace Wedeto\Mail;
 
 use Traversable;
-use WASP\Mail\Mime;
+use Wedeto\Mail\Mime;
 
 class Message
 {
@@ -219,7 +242,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function addFrom($address, $name = null)
     {
@@ -241,7 +264,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setTo($address, $name = null)
     {
@@ -255,7 +278,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function addTo($address, $name = null)
     {
@@ -277,7 +300,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setCc($address, $name = null)
     {
@@ -290,7 +313,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function addCc($address, $name = null)
     {
@@ -312,7 +335,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setBcc($address, $name = null)
     {
@@ -325,7 +348,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function addBcc($address, $name = null)
     {
@@ -347,7 +370,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setReplyTo($address, $name = null)
     {
@@ -361,7 +384,7 @@ class Message
      *
      * @param mixed $address E-mail address or array of e-mail => name pairs
      * @param string|null $name
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function addReplyTo($address, $name = null)
     {
@@ -383,7 +406,7 @@ class Message
      *
      * @param mixed $address E-mail address of the sender
      * @param string|null $name The name of the sender
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setSender(string $address, string $name)
     {
@@ -408,7 +431,7 @@ class Message
      * Set the message subject header value
      *
      * @param string $subject The subject ot set
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setSubject(string $subject)
     {
@@ -427,9 +450,9 @@ class Message
     /**
      * Set the message body
      *
-     * @param string|\WASP\Mail\Mime\Message $body The message body
+     * @param string|\Wedeto\Mail\Mime\Message $body The message body
      * @throws MailException When an invalid type is provided
-     * @return WASP\Mail\Message Provides fluent interface
+     * @return Wedeto\Mail\Message Provides fluent interface
      */
     public function setBody($body)
     {
@@ -493,7 +516,7 @@ class Message
     /**
      * Return the currently set message body
      *
-     * @return string|WASP\Mail\Mime\Message
+     * @return string|Wedeto\Mail\Mime\Message
      */
     public function getBody()
     {

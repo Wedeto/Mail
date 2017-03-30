@@ -1,7 +1,7 @@
-# WASP\Mail
+# Wedeto\Mail
 
 Mail is a class to send mails using a SMTP server. It was derived from Zend\Mail, which is the reason
-it is published using the New BSD license rather than MIT, like the rest of WASP.
+it is published using the New BSD license rather than MIT, like the rest of Wedeto.
 
 ## Features
 
@@ -13,8 +13,8 @@ it is published using the New BSD license rather than MIT, like the rest of WASP
 
 ## Difference from Zend\Mime
 
-WASP\Mail\Mime is derived from Zend\Mime. The functionality has been extended
-to make it easier to use. WASP\Mail\Mime\Message itself can now be added as a
+Wedeto\Mail\Mime is derived from Zend\Mime. The functionality has been extended
+to make it easier to use. Wedeto\Mail\Mime\Message itself can now be added as a
 part to a Mime multipart message, to create nested Mime structures.
 
 This in turn allows you to send messages containing attachments, embedded
@@ -22,10 +22,10 @@ images and text / html alternatives.
 
 ## Differences from Zend\Mail
 
-WASP\Mail is derived from Zend\Mail. However, it has been changed in
+Wedeto\Mail is derived from Zend\Mail. However, it has been changed in
 fundamental ways.  Every dependency on other parts of the Zend framework was
 stripped out. Additionally, support for other transports and protocol was stripped out.
-The aim of WASP\Mail is to be lightweight and functional, not to be a building block to 
+The aim of Wedeto\Mail is to be lightweight and functional, not to be a building block to 
 create webmail application. Therefore, support for IMAP and POP was removed.
 
 Support for alternate transports such as Sendmail and PHP's mail function was
@@ -33,28 +33,28 @@ removed as well.  When Sendmail is available, a SMTP server is usually also
 available on localhost and is therefore superfluous.  PHP's mail function
 should not be used at all, as it's highly inefficient and inflexible.
 
-WASP\Mail does not support to create a WASP\Mail\Message from an existing mail
+Wedeto\Mail does not support to create a Wedeto\Mail\Message from an existing mail
 message. Because all POP and IMAP support has been stripped this is no longer
 necessary. This allowed to strip down the complex header parsing situation so store
 headers in a simply array rather than a complex structure of seperate header classes.
 
-A new class was added, WASP\Mail\HTMLMessage. This eases the construction of messages containing a
+A new class was added, Wedeto\Mail\HTMLMessage. This eases the construction of messages containing a
 HTML part, a text part, attachments and embedded images, to create a structure like:
 
 **HTMLMessage**
-* Message container (WASP\Mail\Mime\Message)
-  * Plain text (WASP\Mail\Mime\Part)
-  * HTML Container (WASP\Mail\Mime\Message)
-    * HTML Message (WASP\Mail\Mime\Part)
-    * Embedded image 2 (WASP\Mail\Mime\Attachment)
-    * Embedded image 2 (WASP\Mail\Mime\Attachment)
-* Attachment 1 (WASP\Mail\Mime\Attachment)
-* Attachment 2 (WASP\Mail\Mime\Attachment)
+* Message container (Wedeto\Mail\Mime\Message)
+  * Plain text (Wedeto\Mail\Mime\Part)
+  * HTML Container (Wedeto\Mail\Mime\Message)
+    * HTML Message (Wedeto\Mail\Mime\Part)
+    * Embedded image 2 (Wedeto\Mail\Mime\Attachment)
+    * Embedded image 2 (Wedeto\Mail\Mime\Attachment)
+* Attachment 1 (Wedeto\Mail\Mime\Attachment)
+* Attachment 2 (Wedeto\Mail\Mime\Attachment)
 
 
 ## Usage
 
-There's a transport, WASP\Mail\SMTPMailer. It can be created without any
+There's a transport, Wedeto\Mail\SMTPMailer. It can be created without any
 argument, in which case it defaults to connecting to localhost on port 25. You
 can specify the following options:
 
@@ -68,7 +68,7 @@ can specify the following options:
 Provide these options in an associative array:
 
 ```
-use WASP\Mail\SMTPMailer;
+use Wedeto\Mail\SMTPMailer;
 
 $mailer = new SMTPMailer(array(
     'hostname' => 'localhost',
@@ -76,10 +76,10 @@ $mailer = new SMTPMailer(array(
 );
 ```
 
-A HTML message can be composed with WASP\Mail\HTMLMessage:
+A HTML message can be composed with Wedeto\Mail\HTMLMessage:
 
 ```
-use WASP\Mail\HTMLMessage;
+use Wedeto\Mail\HTMLMessage;
 
 $msg = new HTMLMessage;
 $msg->setHTML('<html><head></head><body><h1>Hi there</h1><p>My message</p>');
@@ -120,7 +120,7 @@ $mailer->send($msg);
 
 That's it, it's sent!
 
-Of course, you can also compile your own message using WASP\Mail\Message,
-building a message using WASP\Mail\Mime\Message and WASP\Mail\Mime\Part, much
+Of course, you can also compile your own message using Wedeto\Mail\Message,
+building a message using Wedeto\Mail\Mime\Message and Wedeto\Mail\Mime\Part, much
 in the same way as you can with Zend\Mail and Zend\Mime.
 
