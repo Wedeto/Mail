@@ -1,5 +1,35 @@
 <?php
-/**
+/*
+This is part of Wedeto, the WEb DEvelopment TOolkit.
+It is published under the BSD 3-Clause License.
+
+Wedeto\Mail\Message was adapted from Zend\Mail\Message
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
+
+The original source code is copyright Zend Technologies USA Inc. The original
+licence information is included below.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. Redistributions in binary form
+must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with
+the distribution. Neither the name of Zend or Rogue Wave Software, nor the
+names of its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS SOFTWARE IS
+PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+
  * Zend Framework (http://framework.zend.com/)
  *
  * @link      http://github.com/zendframework/zf2 for the canonical source repository
@@ -7,23 +37,15 @@
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace ZendTest\Mail;
+namespace Wedeto\Mail;
 
+use PHPUnit\Framework\TestCase;
 use stdClass;
-use Zend\Mail\Address;
-use Zend\Mail\AddressList;
-use Zend\Mail\Header;
-use Zend\Mail\Headers;
-use Zend\Mail\Message;
-use Zend\Mime\Message as MimeMessage;
-use Zend\Mime\Mime;
-use Zend\Mime\Part as MimePart;
 
 /**
- * @group      Zend_Mail
- * @covers Zend\Mail\Message<extended>
+ * @covers Wedeto\Mail\Message
  */
-class MessageTest extends \PHPUnit_Framework_TestCase
+class MessageTest extends TestCase
 {
     /** @var Message */
     public $message;
@@ -538,8 +560,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testSettingBodyFromSinglePartMimeMessageSetsAppropriateHeaders()
     {
-        $mime = new Mime('foo-bar');
-        $part = new MimePart('<b>foo</b>');
+        $mime = new Mime\Mime('foo-bar');
+        $part = new Mime\Part('<b>foo</b>');
         $part->type = 'text/html';
         $body = new MimeMessage();
         $body->setMime($mime);
@@ -560,8 +582,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testSettingUtf8MailBodyFromSinglePartMimeUtf8MessageSetsAppropriateHeaders()
     {
-        $mime = new Mime('foo-bar');
-        $part = new MimePart('UTF-8 TestString: AaÜüÄäÖöß');
+        $mime = new Mime\Mime('foo-bar');
+        $part = new Mime\Part('UTF-8 TestString: AaÜüÄäÖöß');
         $part->type = Mime::TYPE_TEXT;
         $part->encoding = Mime::ENCODING_QUOTEDPRINTABLE;
         $part->charset = 'utf-8';
@@ -581,10 +603,10 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testSettingBodyFromMultiPartMimeMessageSetsAppropriateHeaders()
     {
-        $mime = new Mime('foo-bar');
-        $text = new MimePart('foo');
+        $mime = new Mime\Mime('foo-bar');
+        $text = new Mime\Part('foo');
         $text->type = 'text/plain';
-        $html = new MimePart('<b>foo</b>');
+        $html = new Mime\Part('<b>foo</b>');
         $html->type = 'text/html';
         $body = new MimeMessage();
         $body->setMime($mime);
@@ -606,10 +628,10 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testRetrievingBodyTextFromMessageWithMultiPartMimeBodyReturnsMimeSerialization()
     {
-        $mime = new Mime('foo-bar');
-        $text = new MimePart('foo');
+        $mime = new Mime\Mime('foo-bar');
+        $text = new Mime\Part('foo');
         $text->type = 'text/plain';
-        $html = new MimePart('<b>foo</b>');
+        $html = new Mime\Part('<b>foo</b>');
         $html->type = 'text/html';
         $body = new MimeMessage();
         $body->setMime($mime);
@@ -675,9 +697,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertContains($expected, $test);
     }
 
-    /**
-     * @group ZF2-507
-     */
     public function testDefaultDateHeaderEncodingIsAlwaysAscii()
     {
         $this->message->setEncoding('utf-8');
@@ -702,9 +721,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($serialized, $restoredMessage->toString());
     }
 
-    /**
-     * @group 45
-     */
     public function testCanRestoreFromSerializedStringWhenBodyContainsMultipleNewlines()
     {
         $this->message->addTo('zf-devteam@example.com', 'ZF DevTeam');
@@ -717,9 +733,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($serialized, $restoredMessage->toString());
     }
 
-    /**
-     * @group ZF2-5962
-     */
     public function testPassEmptyArrayIntoSetPartsOfMimeMessageShouldReturnEmptyBodyString()
     {
         $mimeMessage = new MimeMessage();
@@ -746,7 +759,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @group ZF2015-04
      * @dataProvider messageRecipients
      */
     public function testRaisesExceptionWhenAttemptingToSerializeMessageWithCRLFInjectionViaHeader($recipientMethod)
@@ -761,9 +773,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->message->{$recipientMethod}(implode(Headers::EOL, $subject));
     }
 
-    /**
-     * @group ZF2015-04
-     */
     public function testDetectsCRLFInjectionViaSubject()
     {
         $subject = [
@@ -781,13 +790,13 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testHeaderUnfoldingWorksAsExpectedForMultipartMessages()
     {
-        $text = new MimePart('Test content');
+        $text = new Mime\Part('Test content');
         $text->type = Mime::TYPE_TEXT;
         $text->encoding = Mime::ENCODING_QUOTEDPRINTABLE;
         $text->disposition = Mime::DISPOSITION_INLINE;
         $text->charset = 'UTF-8';
 
-        $html = new MimePart('<b>Test content</b>');
+        $html = new Mime\Part('<b>Test content</b>');
         $html->type = Mime::TYPE_HTML;
         $html->encoding = Mime::ENCODING_QUOTEDPRINTABLE;
         $html->disposition = Mime::DISPOSITION_INLINE;
@@ -797,7 +806,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $multipartContent->addPart($text);
         $multipartContent->addPart($html);
 
-        $multipartPart = new MimePart($multipartContent->generateMessage());
+        $multipartPart = new Mime\Part($multipartContent->generateMessage());
         $multipartPart->charset = 'UTF-8';
         $multipartPart->type = 'multipart/alternative';
         $multipartPart->boundary = $multipartContent->getMime()->boundary();
@@ -814,9 +823,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->assertContains($multipartContent->getMime()->boundary(), $contentType->getFieldValue());
     }
 
-    /**
-     * @group 19
-     */
     public function testCanParseMultipartReport()
     {
         $raw = file_get_contents(__DIR__ . '/_files/zend-mail-19.txt');

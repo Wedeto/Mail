@@ -1,5 +1,35 @@
 <?php
-/**
+/*
+This is part of Wedeto, the WEb DEvelopment TOolkit.
+It is published under the BSD 3-Clause License.
+
+Wedeto\Mail\Protocol\SMTP was adapted from Zend\Mail\Protocol\Smtp.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
+
+The original source code is copyright Zend Technologies USA Inc. The original
+licence information is included below.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer. Redistributions in binary form
+must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with
+the distribution. Neither the name of Zend or Rogue Wave Software, nor the
+names of its contributors may be used to endorse or promote products derived
+from this software without specific prior written permission. THIS SOFTWARE IS
+PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+
  * Zend Framework (http://framework.zend.com/)
  *
  * @link      http://github.com/zendframework/zf2 for the canonical source repository
@@ -7,14 +37,12 @@
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  */
 
-namespace ZendTest\Mail\TestAsset;
-
-use Zend\Mail\Protocol\Smtp;
+namespace Wedeto\Mail\Protocol;
 
 /**
  * Test spy to use when testing SMTP protocol
  */
-class SmtpProtocolSpy extends Smtp
+class SMTPProtocolSpy extends SMTP
 {
     public $calledQuit = false;
     protected $connect = false;
@@ -63,67 +91,37 @@ class SmtpProtocolSpy extends Smtp
         $this->rcptTest[] = $to;
     }
 
-    // @codingStandardsIgnoreStart
     protected function _send($request)
     {
         // Save request to internal log
         $this->_addLog($request . self::EOL);
     }
-    // @codingStandardsIgnoreEnd
 
-    // @codingStandardsIgnoreStart
     protected function _expect($code, $timeout = null)
     {
         return '';
     }
-    // @codingStandardsIgnoreEnd
 
-    /**
-     * Are we connected?
-     *
-     * @return bool
-     */
     public function isConnected()
     {
         return $this->connect;
     }
 
-    /**
-     * Get value of mail property
-     *
-     * @return null|string
-     */
     public function getMail()
     {
         return $this->mail;
     }
 
-    /**
-     * Get recipients
-     *
-     * @return array
-     */
     public function getRecipients()
     {
         return $this->rcptTest;
     }
 
-    /**
-     * Get Auth Status
-     *
-     * @return bool
-     */
     public function getAuth()
     {
         return $this->auth;
     }
 
-    /**
-     * Set Auth Status
-     *
-     * @param  bool $status
-     * @return self
-     */
     public function setAuth($status)
     {
         $this->auth = (bool) $status;
@@ -131,22 +129,11 @@ class SmtpProtocolSpy extends Smtp
         return $this;
     }
 
-    /**
-     * Get Session Status
-     *
-     * @return bool
-     */
     public function getSessionStatus()
     {
         return $this->sess;
     }
 
-    /**
-     * Set Session Status
-     *
-     * @param  bool $status
-     * @return self
-     */
     public function setSessionStatus($status)
     {
         $this->sess = (bool) $status;
