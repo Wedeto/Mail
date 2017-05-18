@@ -1,10 +1,10 @@
 <?php
 /*
 This is part of Wedeto, the WEb DEvelopment TOolkit.
-Wedeto\Mail is published under the BSD 3-Clause License.
+It is published under the BSD 3-Clause License.
 
 Wedeto\Mail\HeaderWrap was adapted from Zend\Mail\Header\HeaderWrap.
-The modifications are: Copyright 2017, Egbert van der Wal.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.
@@ -29,9 +29,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-*/
 
-/**
  * Zend Framework (http://framework.zend.com/)
  *
  * @link      http://github.com/zendframework/zf2 for the canonical source repository
@@ -42,6 +40,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\Mail;
 
 use Wedeto\Mail\Mime\Mime;
+use Wedeto\Util\ErrorInterceptor;
 
 /**
  * Utility class used for creating wrapped or MIME-encoded versions of header
@@ -53,12 +52,12 @@ class HeaderWrap
      * Wrap a long header line
      *
      * @param  string $value
-     * @param  HeaderInterface $header
+     * @param  string $encoding
      * @return string The wrapped header value
      */
-    public static function wrap(string $value)
+    public static function wrap(string $value, string $encoding = null)
     {
-        $encoding = Mime::isPrintable($value) ? "ASCII" : "UTF-8";
+        $encoding = $encoding ?: (Mime::isPrintable($value) ? "ASCII" : "UTF-8");
         if ($encoding === 'ASCII')
             return wordwrap($value, 78, "\r\n ");
 
@@ -103,7 +102,10 @@ class HeaderWrap
             'line-length' => $lineLength,
         ];
 
-        $encoded = iconv_mime_encode('x-test', $value, $preferences);
+        // iconv_mime_encode may throw errors
+        $mime_encode = new ErrorInterceptor('iconv_mime_encode');
+        $mime_encode->registerError(E_NOTICE, "iconv_mime_encode");
+        $encoded = $mime_encode->execute('x-test', $value, $preferences);
 
         return $encoded !== false;
     }

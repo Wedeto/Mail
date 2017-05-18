@@ -47,6 +47,7 @@ use Wedeto\Mail\Mime;
 class Message
 {
     const EOL = "\r\n";
+    const HEADER_FOLDING = "\r\n ";
 
     /** Content of the message */
     protected $body;
@@ -166,8 +167,13 @@ class Message
      */
     public function getHeaders()
     {
-        if (!isset($this->Headers['Date']))
         return $this->headers;
+    }
+
+    public function getHeader(string $name)
+    {
+        $name = self::normalizeHeader($name);
+        return $this->headers[$name] ?? null;
     }
 
     /**
@@ -408,7 +414,7 @@ class Message
      * @param string|null $name The name of the sender
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function setSender(string $address, string $name)
+    public function setSender(string $address, string $name = null)
     {
         $this->headers['Sender'] = array();
         return $this->addAddresses('Sender', $address, $name);
@@ -427,6 +433,11 @@ class Message
         return null;
     }
 
+    protected function sanitizeHeaderValue(string $value)
+    {
+        return preg_replace('/[\x000-\x0020].*/u', '', $value);
+    }
+
     /**
      * Set the message subject header value
      *
@@ -435,7 +446,7 @@ class Message
      */
     public function setSubject(string $subject)
     {
-        $this->headers['Subject'] = $subject;
+        $this->headers['Subject'] = $this->sanitizeHeaderValue($subject);
         return $this;
     }
 
@@ -470,8 +481,8 @@ class Message
             {
                 if (!method_exists($body, '__toString'))
                 {
-                    throw new Exception\InvalidArgumentException(sprintf(
-                        '%s expects object arguments of type Zend\Mime\Message or implementing __toString();'
+                    throw new MailException(sprintf(
+                        '%s expects object arguments of type Wedeto\Mail\Mime\Message or implementing __toString();'
                         . ' object of type "%s" received',
                         __METHOD__,
                         get_class($body)

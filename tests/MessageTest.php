@@ -554,7 +554,7 @@ class MessageTest extends TestCase
      */
     public function testSettingNonScalarNonMimeNonStringSerializableValueForBodyRaisesException($body)
     {
-        $this->setExpectedException('Zend\Mail\Exception\InvalidArgumentException');
+        $this->expectException(MailException::class);
         $this->message->setBody($body);
     }
 
@@ -595,8 +595,8 @@ class MessageTest extends TestCase
         $this->message->setBody($body);
 
         $this->assertContains(
-            'Content-Type: text/plain;' . Headers::FOLDING . 'charset="utf-8"' . Headers::EOL
-            . 'Content-Transfer-Encoding: quoted-printable' . Headers::EOL,
+            'Content-Type: text/plain;' . Message::HEADER_FOLDING . 'charset="utf-8"' . Message::EOL
+            . 'Content-Transfer-Encoding: quoted-printable' . Message::EOL,
             $this->message->getHeaders()->toString()
         );
     }
@@ -615,7 +615,7 @@ class MessageTest extends TestCase
 
         $this->message->setBody($body);
         $headers = $this->message->getHeaders();
-        $this->assertInstanceOf('Zend\Mail\Headers', $headers);
+        $this->assertTrue(is_array($headers));
 
         $this->assertTrue($headers->has('mime-version'));
         $header = $headers->get('mime-version');
@@ -641,7 +641,7 @@ class MessageTest extends TestCase
         $this->message->setBody($body);
 
         $text = $this->message->getBodyText();
-        $this->assertEquals($body->generateMessage(Headers::EOL), $text);
+        $this->assertEquals($body->generateMessage(Message::EOL), $text);
         $this->assertContains('--foo-bar', $text);
         $this->assertContains('--foo-bar--', $text);
         $this->assertContains('Content-Type: text/plain', $text);
@@ -769,8 +769,8 @@ class MessageTest extends TestCase
             '',
             '<html><body><iframe src="http://example.com/"></iframe></body></html> <!--',
         ];
-        $this->setExpectedException('Zend\Mail\Exception\InvalidArgumentException');
-        $this->message->{$recipientMethod}(implode(Headers::EOL, $subject));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->message->{$recipientMethod}(implode(Message::EOL, $subject));
     }
 
     public function testDetectsCRLFInjectionViaSubject()
@@ -781,9 +781,9 @@ class MessageTest extends TestCase
             '',
             '<html><body><iframe src="http://example.com/"></iframe></body></html> <!--',
         ];
-        $this->message->setSubject(implode(Headers::EOL, $subject));
+        $this->message->setSubject(implode(Message::EOL, $subject));
 
-        $serializedHeaders = $this->message->getHeaders()->toString();
+        $serializedHeaders = implode(Message::EOL, $this->message->getHeaders());
         $this->assertContains('example', $serializedHeaders);
         $this->assertNotContains("\r\n<html>", $serializedHeaders);
     }
@@ -791,72 +791,35 @@ class MessageTest extends TestCase
     public function testHeaderUnfoldingWorksAsExpectedForMultipartMessages()
     {
         $text = new Mime\Part('Test content');
-        $text->type = Mime::TYPE_TEXT;
-        $text->encoding = Mime::ENCODING_QUOTEDPRINTABLE;
-        $text->disposition = Mime::DISPOSITION_INLINE;
-        $text->charset = 'UTF-8';
+        $text->setType(Mime\Mime::TYPE_TEXT);
+        $text->setEncoding(Mime\Mime::ENCODING_QUOTEDPRINTABLE);
+        $text->setDisposition(Mime\Mime::DISPOSITION_INLINE);
+        $text->setCharset('UTF-8');
 
         $html = new Mime\Part('<b>Test content</b>');
-        $html->type = Mime::TYPE_HTML;
-        $html->encoding = Mime::ENCODING_QUOTEDPRINTABLE;
-        $html->disposition = Mime::DISPOSITION_INLINE;
-        $html->charset = 'UTF-8';
+        $html->setType(Mime\Mime::TYPE_HTML);
+        $html->setEncoding(Mime\Mime::ENCODING_QUOTEDPRINTABLE);
+        $html->setDisposition(Mime\Mime::DISPOSITION_INLINE);
+        $html->setCharset('UTF-8');
 
-        $multipartContent = new MimeMessage();
+        $multipartContent = new Mime\Message();
         $multipartContent->addPart($text);
         $multipartContent->addPart($html);
 
         $multipartPart = new Mime\Part($multipartContent->generateMessage());
-        $multipartPart->charset = 'UTF-8';
-        $multipartPart->type = 'multipart/alternative';
-        $multipartPart->boundary = $multipartContent->getMime()->boundary();
+        $multipartPart->setCharset('UTF-8');
+        $multipartPart->setType('multipart/alternative');
+        $multipartPart->setBoundary($multipartContent->getMime()->boundary());
 
-        $message = new MimeMessage();
+        $message = new Mime\Message();
         $message->addPart($multipartPart);
 
-        $this->message->getHeaders()->addHeaderLine('Content-Transfer-Encoding', Mime::ENCODING_QUOTEDPRINTABLE);
+        $this->message->addHeader('Content-Transfer-Encoding', Mime\Mime::ENCODING_QUOTEDPRINTABLE);
         $this->message->setBody($message);
 
-        $contentType = $this->message->getHeaders()->get('Content-Type');
-        $this->assertInstanceOf('Zend\Mail\Header\ContentType', $contentType);
-        $this->assertContains('multipart/alternative', $contentType->getFieldValue());
+        $contentType = $this->message->getHeader('Content-Type');
+        $this->assertTrue(is_string($contentType));
+        $this->assertContains('multipart/alternative', $contentType);
         $this->assertContains($multipartContent->getMime()->boundary(), $contentType->getFieldValue());
-    }
-
-    public function testCanParseMultipartReport()
-    {
-        $raw = file_get_contents(__DIR__ . '/_files/zend-mail-19.txt');
-        $message = Message::fromString($raw);
-        $this->assertInstanceOf(Message::class, $message);
-        $this->assertInternalType('string', $message->getBody());
-
-        $headers = $message->getHeaders();
-        $this->assertCount(8, $headers);
-        $this->assertTrue($headers->has('Date'));
-        $this->assertTrue($headers->has('From'));
-        $this->assertTrue($headers->has('Message-Id'));
-        $this->assertTrue($headers->has('To'));
-        $this->assertTrue($headers->has('MIME-Version'));
-        $this->assertTrue($headers->has('Content-Type'));
-        $this->assertTrue($headers->has('Subject'));
-        $this->assertTrue($headers->has('Auto-Submitted'));
-
-        $contentType = $headers->get('Content-Type');
-        $this->assertEquals('multipart/report', $contentType->getType());
-    }
-
-    public function testMailHeaderContainsZeroValue()
-    {
-        $message =
-            "From: someone@example.com\r\n"
-            ."To: someone@example.com\r\n"
-            ."Subject: plain text email example\r\n"
-            ."X-Spam-Score: 0\r\n"
-            ."X-Some-Value: 1\r\n"
-            ."\r\n"
-            ."I am a test message\r\n";
-
-        $msg = Message::fromString($message);
-        $this->assertContains('X-Spam-Score: 0', $msg->toString());
     }
 }

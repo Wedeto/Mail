@@ -446,7 +446,7 @@ class Part implements PartInterface
         $headers = array();
 
         $contentType = $this->type;
-        if (($this->isStream || substr($contentType, 0, 4) !== "text") && empty($this->disposition))
+        if (($this->isStream || !empty($this->filename)) && empty($this->disposition))
             throw new MailException("You should provide a disposition for attachments");
 
         if ($this->charset)
@@ -468,7 +468,7 @@ class Part implements PartInterface
 
         if ($this->disposition)
         {
-            if (empty($this->filename))
+            if ($this->disposition === Mime::DISPOSITION_ATTACHMENT && empty($this->filename))
                 throw new MailException("You should provide a filename for the attachment");
 
             $disposition = $this->disposition;

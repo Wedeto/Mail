@@ -8,6 +8,9 @@
         "Wedeto/Util": "@dev",
         "php": ">=7.0.0"
     },
+    "suggest": {
+        "ext-idn": "Needed to support validation of IDN domain names"
+    },
     "autoload": {
         "psr-4": {
             "Wedeto\\Mail\\": "src/"

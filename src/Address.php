@@ -1,10 +1,10 @@
 <?php
 /*
 This is part of Wedeto, the WEb DEvelopment TOolkit.
-Wedeto\Mail is published under the BSD 3-Clause License.
+It is published under the BSD 3-Clause License.
 
 Wedeto\Mail\Address was adapted from Zend\Mail\Address.
-The modifications are: Copyright 2017, Egbert van der Wal.
+The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.
@@ -61,12 +61,25 @@ class Address
      * @param string $name The name of the recipient
      * @throws InvalidArgumentException when the e-mail address is not valid
      */
-    public function __construct(string $email, string $name)
+    public function __construct(string $email, string $name = null)
     {
-        $email = filter_var($email, FILTER_VALIDATE_EMAIL);
+        $filtered = filter_var($email, FILTER_VALIDATE_EMAIL);
+        if ($filtered === false && mb_strlen($email) !== strlen($email))
+        {
+            if (!function_exists('idn_to_ascii'))
+                throw new \RuntimeException("E-mail address contains multi-byte characters but php-idn extension is not available");
+
+            // Unicode needs to be punycoded
+            $parts = explode('@', $email);
+            if (count($parts) === 2)
+            {
+                $punycoded = $parts[0] . '@' . idn_to_ascii($parts[1]);
+                $filtered = filter_var($punycoded, FILTER_VALIDATE_EMAIL);
+            }
+        }
         
-        if ($email === false)
-            throw new \InvalidArgumentException('Email must be a valid email address');
+        if ($filtered === false)
+            throw new \InvalidArgumentException('Not a valid e-mail address: ' . $email);
 
         $this->email = $email;
         $this->name = preg_replace('/\p{Cc}/u', '', $name);

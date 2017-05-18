@@ -49,27 +49,19 @@ class HeaderWrapTest extends TestCase
     public function testWrapUnstructuredHeaderAscii()
     {
         $string = str_repeat('foobarblahblahblah baz bat', 4);
-        $header = $this->getMock('Zend\Mail\Header\UnstructuredInterface');
-        $header->expects($this->any())
-            ->method('getEncoding')
-            ->will($this->returnValue('ASCII'));
         $expected = wordwrap($string, 78, "\r\n ");
 
-        $test = HeaderWrap::wrap($string, $header);
+        $test = HeaderWrap::wrap($string);
         $this->assertEquals($expected, $test);
     }
 
     public function testWrapUnstructuredHeaderMime()
     {
         $string = str_repeat('foobarblahblahblah baz bat', 3);
-        $header = $this->getMock('Zend\Mail\Header\UnstructuredInterface');
-        $header->expects($this->any())
-            ->method('getEncoding')
-            ->will($this->returnValue('UTF-8'));
         $expected = "=?UTF-8?Q?foobarblahblahblah=20baz=20batfoobarblahblahblah=20baz=20?=\r\n"
                     . " =?UTF-8?Q?batfoobarblahblahblah=20baz=20bat?=";
 
-        $test = HeaderWrap::wrap($string, $header);
+        $test = HeaderWrap::wrap($string, 'UTF-8');
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
@@ -84,17 +76,6 @@ class HeaderWrapTest extends TestCase
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
 
-    public function testMimeDecoding()
-    {
-        $expected = str_repeat('foobarblahblahblah baz bat', 3);
-        $encoded = "=?UTF-8?Q?foobarblahblahblah=20baz=20batfoobarblahblahblah=20baz=20?=\r\n"
-                    . " =?UTF-8?Q?batfoobarblahblahblah=20baz=20bat?=";
-
-        $decoded = HeaderWrap::mimeDecodeValue($encoded);
-
-        $this->assertEquals($expected, $decoded);
-    }
-
     /**
      * Test that fails with HeaderWrap::canBeEncoded at lowest level:
      *   iconv_mime_encode(): Unknown error (7)
@@ -104,17 +85,15 @@ class HeaderWrapTest extends TestCase
      */
     public function testCanBeEncoded()
     {
-        // @codingStandardsIgnoreStart
-        $name    = 'Subject';
         $value   = "[#77675] New Issue:xxxxxxxxx xxxxxxx xxxxxxxx xxxxxxxxxxxxx xxxxxxxxxx xxxxxxxx, tähtaeg xx.xx, xxxx";
-        $encoded = "Subject: =?UTF-8?Q?[#77675]=20New=20Issue:xxxxxxxxx=20xxxxxxx=20xxxxxxxx=20?=\r\n =?UTF-8?Q?xxxxxxxxxxxxx=20xxxxxxxxxx=20xxxxxxxx,=20t=C3=A4htaeg=20xx.xx,=20xxxx?=";
-        // @codingStandardsIgnoreEnd
-        //
         $res = HeaderWrap::canBeEncoded($value);
         $this->assertTrue($res);
 
-        $header = new GenericHeader($name, $value);
-        $res = $header->toString();
-        $this->assertEquals($encoded, $res);
+        $value = '';
+        for ($i = 0; $i < 255; ++$i)
+            $value .= chr($i);
+
+        $res = HeaderWrap::canBeEncoded($value);
+        $this->assertFalse($res);
     }
 }

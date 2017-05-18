@@ -68,13 +68,12 @@ class AddressTest extends TestCase
 
     /**
      * @dataProvider invalidSenderDataProvider
-     * @group ZF2015-04
      * @param string $email
      * @param null|string $name
      */
     public function testSetAddressInvalidAddressObject($email, $name)
     {
-        $this->setExpectedException('Zend\Mail\Exception\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         new Address($email, $name);
     }
 
@@ -106,7 +105,7 @@ class AddressTest extends TestCase
     public function testSetAddressValidAddressObject($email, $name)
     {
         $address = new Address($email, $name);
-        $this->assertInstanceOf('\Zend\Mail\Address', $address);
+        $this->assertInstanceOf(Address::class, $address);
     }
 
     public function validSenderDataProvider()
