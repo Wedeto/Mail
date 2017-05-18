@@ -79,9 +79,7 @@ class Message
     public function isValid()
     {
         $from = $this->getFrom();
-        if (!$from instanceof AddressList)
-            return false;
-        return (bool) count($from);
+        return !empty($from);
     }
 
     /**
@@ -93,7 +91,6 @@ class Message
     public function setEncoding(string $encoding)
     {
         $this->encoding = $encoding;
-        $this->getHeaders()->setEncoding($encoding);
         return $this;
     }
 
@@ -165,15 +162,41 @@ class Message
      *
      * @return array List of headers
      */
-    public function getHeaders()
+    public function getHeaders(bool $encode)
     {
+        if ($encode)
+        {
+            $headers = [];
+            foreach ($this->headers as $name => $value)
+            {
+                $value = (array)$value;
+                foreach ($value as $val)
+                    $headers[] = $name . ': ' . HeaderWrap::wrap($val);
+            }
+            return $headers;
+        }
+
         return $this->headers;
     }
 
-    public function getHeader(string $name)
+    /**
+     * Get a specific header, properly encoded if requested
+     * @param string $name The header to return
+     * @param bool $encode Whether to encode the value
+     * @return string|null The encoded value or null if it is not set
+     */
+    public function getHeader(string $name, bool $encode)
     {
         $name = self::normalizeHeader($name);
-        return $this->headers[$name] ?? null;
+        $value = $this->headers[$name] ?? null;
+        if (!$encode || empty($value))
+            return $value;
+
+        $value = (array)$value;
+        $header = [];
+        foreach ($value as $val)
+            $header[] = $name . ': ' . HeaderWrap::wrap($val);
+        return implode(Message::EOL, $header);
     }
 
     /**
@@ -183,7 +206,7 @@ class Message
      * @param string $name The recipient's name. Omit when using an array as $address
      * @return Message
      */
-    public function setFrom(string $address, string $name = null)
+    public function setFrom($address, string $name = null)
     {
         $this->headers['From'] = array();
         return $this->addFrom($address, $name);
@@ -210,14 +233,14 @@ class Message
         
         foreach ($address as $key => $value)
         {
-            if (is_int($key))
+            if ($value instanceof Address)
+            {
+                $this->headers[$header][$value->getEmail()] = $value;
+            }
+            elseif (is_int($key))
             {
                 $email = $value;
                 $this->headers[$header][$email] = new Address($email, "");
-            }
-            elseif ($value instanceof Address)
-            {
-                $this->headers[$header][$value->getEmail()] = $value;
             }
             else
             {
@@ -241,6 +264,21 @@ class Message
             return array();
 
         return $this->headers[$name];
+    }
+
+    /**
+     * Check if a specific header contains a certain e-mail address
+     * @param string $header The header to check
+     * @param string $email The e-mail address to find
+     */
+    public function hasAddress(string $header, string $email)
+    {
+        $name = self::normalizeHeader($header);
+        if (!in_array($name, ['To', 'From', 'Bcc', 'Cc', 'Reply-To']))
+            throw new MailException("Invalid address header: " . $header);
+
+        $addresses = $this->headers[$name] ?? [];
+        return isset($addresses[$email]);
     }
 
     /**
@@ -308,7 +346,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function setCc($address, $name = null)
+    public function setCC($address, $name = null)
     {
         $this->headers['Cc'] = array();
         return $this->addAddresses('Cc', $address, $name);
@@ -321,7 +359,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function addCc($address, $name = null)
+    public function addCC($address, $name = null)
     {
         return $this->addAddresses('Cc', $address, $name);
     }
@@ -331,7 +369,7 @@ class Message
      *
      * @return array Pairs of email => name pairs
      */
-    public function getCc()
+    public function getCC()
     {
         return $this->getAddresses('Cc');
     }
@@ -343,7 +381,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function setBcc($address, $name = null)
+    public function setBCC($address, $name = null)
     {
         $this->headers['Bcc'] = array();
         return $this->addAddresses('Bcc', $address, $name);
@@ -356,7 +394,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function addBcc($address, $name = null)
+    public function addBCC($address, $name = null)
     {
         return $this->addAddresses('Bcc', $address, $name);
     }
@@ -366,7 +404,7 @@ class Message
      *
      * @return array Pairs of email => name pairs
      */
-    public function getBcc()
+    public function getBCC()
     {
         return $this->getAddresses('Bcc');
     }
@@ -435,7 +473,7 @@ class Message
 
     protected function sanitizeHeaderValue(string $value)
     {
-        return preg_replace('/[\x000-\x0020].*/u', '', $value);
+        return $value; //preg_replace('/[\x000-\x0020].*/u', '', $value);
     }
 
     /**
@@ -497,7 +535,7 @@ class Message
             return $this;
 
         // Get headers, and set Mime-Version header
-        $headers = $this->getHeaders();
+        $headers = $this->getHeaders(false);
         $this->headers['Mime-Version'] = '1.0';
 
 
@@ -554,7 +592,15 @@ class Message
      */
     public function toString()
     {
-        $headers = $this->getHeaders();
+        $header_lines = [];
+        foreach ($this->headers as $name => $value)
+        {
+            $value = (array)$this->getHeader($name, true);
+            foreach ($value as $val)
+                $header_lines = $name . ': ' . $val;
+        }
+
+        $headers = implode(Message::EOL, $header_lines);
         return $headers->toString()
                . self::EOL
                . $this->getBodyText();

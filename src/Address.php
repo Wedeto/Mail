@@ -63,6 +63,13 @@ class Address
      */
     public function __construct(string $email, string $name = null)
     {
+        // First check if there is a name and e-mail embedded in one string
+        if (preg_match('/(.*)<([^\s]+)>/', $email, $match))
+        {
+            $email = $match[2];
+            $name = $name ?? trim($match[1]);
+        }
+
         $filtered = filter_var($email, FILTER_VALIDATE_EMAIL);
         if ($filtered === false && mb_strlen($email) !== strlen($email))
         {
