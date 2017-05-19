@@ -559,7 +559,7 @@ class MessageTest extends TestCase
         $this->assertContains(
             'Content-Type: text/plain;' . Message::HEADER_FOLDING . 'charset="utf-8"' . Message::EOL
             . 'Content-Transfer-Encoding: quoted-printable' . Message::EOL,
-            $this->message->getHeader('Content-Type', true)
+            $this->message->getHeadersAsString()
         );
     }
 
@@ -632,7 +632,7 @@ class MessageTest extends TestCase
         $this->message->setSubject('This is a subject');
         $this->message->setEncoding('UTF-8');
 
-        $test = $this->message->getHeaders(true);
+        $test = $this->message->getHeadersAsString();
 
         $expected = '=?UTF-8?Q?ZF=20DevTeam?=';
         $this->assertContains($expected, $test);

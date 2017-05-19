@@ -119,7 +119,7 @@ class Address
     /**
      * @return string String representation of address
      */
-    public function toString()
+    public function toString(string $encoding = 'ASCII')
     {
         // E-mail address part
         $email = $this->getEmail();
@@ -139,7 +139,7 @@ class Address
         if (strpos($name, ',') !== false)
             $name = sprintf('"%s"', str_replace('"', '\\"', $name));
 
-        if (!Mime::isPrintable($name))
+        if (!Mime::isPrintable($name) || $encoding === 'UTF-8')
             $name = HeaderWrap::mimeEncodeValue($name, 'UTF-8');
 
         return sprintf('%s <%s>', $name, $email);

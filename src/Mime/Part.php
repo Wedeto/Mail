@@ -450,7 +450,7 @@ class Part implements PartInterface
             throw new MailException("You should provide a disposition for attachments");
 
         if ($this->charset)
-            $contentType .= '; charset=' . $this->charset;
+            $contentType .= ';' . $EOL . ' charset=' . $this->charset;
 
         if ($this->boundary)
         {

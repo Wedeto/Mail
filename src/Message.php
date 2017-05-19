@@ -104,7 +104,8 @@ class Message
         return $this->encoding;
     }
 
-    protected static $MULTIVALUED_HEADERS = array('Cc', 'Bcc', 'To', 'From');
+    protected static $MULTIVALUED_HEADERS = array('Cc', 'Bcc', 'To', 'From', 'Reply-To');
+    protected static $ENCODE_HEADERS = array('Subject');
 
     /**
      * Normalize the name of the header: Camel-Cased
@@ -167,16 +168,34 @@ class Message
         if ($encode)
         {
             $headers = [];
-            foreach ($this->headers as $name => $value)
+            foreach ($this->headers as $name => $_)
             {
-                $value = (array)$value;
-                foreach ($value as $val)
-                    $headers[] = $name . ': ' . HeaderWrap::wrap($val);
+                $header = $this->getHeader($name, true);
+                if (!empty($header))
+                    $headers[] = $header;
             }
             return $headers;
         }
 
         return $this->headers;
+    }
+
+    protected function encodeAddresses(array $addresses)
+    {
+        $lines = [];
+        foreach ($addresses as $address)
+            $lines[] = $address->toString($this->encoding);
+
+        return implode(',' . Message::HEADER_FOLDING, $lines);
+    }
+
+
+    /**
+     * @return string all headers concatenated and encoded
+     */
+    public function getHeadersAsString()
+    {
+        return implode(Message::EOL, $this->getHeaders(true));
     }
 
     /**
@@ -192,10 +211,34 @@ class Message
         if (!$encode || empty($value))
             return $value;
 
-        $value = (array)$value;
         $header = [];
-        foreach ($value as $val)
-            $header[] = $name . ': ' . HeaderWrap::wrap($val);
+        if (in_array($name, self::$MULTIVALUED_HEADERS, true))
+        {
+            $headers[] = $name . ': ' . $this->encodeAddresses($value);
+        }
+        else
+        {
+            $encoding = in_array($name, self::$ENCODE_HEADERS) ? $this->encoding : null;
+            if ($name === "Content-Type")
+            {
+                $parameters = preg_split('/\s*;\s*/', $value);
+                $type = array_shift($parameters);
+                foreach ($parameters as &$param)
+                {
+                    list($k, $v) = explode('=', $param, 2);
+                    $v = HeaderWrap::wrap(trim($v, "'\" \t\n\r\0\x0B"));
+                    $param = sprintf('%s="%s"', $k, $v);
+                }
+
+                array_unshift($parameters, $type);
+                $header[] = $name . ': ' . implode(';' . Message::HEADER_FOLDING, $parameters);
+            }
+            else
+            {
+                $header[] = $name . ': ' . HeaderWrap::wrap($value, $encoding);
+            }
+        }
+
         return implode(Message::EOL, $header);
     }
 
@@ -535,15 +578,13 @@ class Message
             return $this;
 
         // Get headers, and set Mime-Version header
-        $headers = $this->getHeaders(false);
-        $this->headers['Mime-Version'] = '1.0';
-
+        $this->addHeader('Mime-Version', '1.0');
 
         // Multipart content headers
         if ($this->body->isMultiPart())
         {
             $mime = $this->body->getMime();
-            $this->headers['Content-Type'] = 'multipart/mixed;' . self::EOL . ' boundary="' . $mime->boundary() . '"';
+            $this->headers['Content-Type'] = 'multipart/mixed;' . self::HEADER_FOLDING . 'boundary="' . $mime->boundary() . '"';
             return $this;
         }
 
@@ -593,7 +634,7 @@ class Message
     public function toString()
     {
         $header_lines = [];
-        foreach ($this->headers as $name => $value)
+        foreach ($this->headers as $name => $_)
         {
             $value = (array)$this->getHeader($name, true);
             foreach ($value as $val)
