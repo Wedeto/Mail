@@ -70,14 +70,27 @@ class HeaderWrap
      * Performs quoted-printable encoding on a value, setting maximum
      * line-length to 998.
      *
-     * @param  string $value
-     * @param  string $encoding
-     * @param  int $lineLength maximum line-length, by default 998
+     * @param string $value
+     * @param string $encoding
+     * @param int $lineLength maximum line-length, by default 998
      * @return string Returns the mime encode value without the last line ending
      */
     public static function mimeEncodeValue(string $value, string $encoding, int $lineLength = 998)
     {
         return Mime::encodeQuotedPrintableHeader($value, $encoding, $lineLength, "\r\n");
+    }
+
+    /**
+     * MIME-decode a value
+     *
+     * Performs quoted-printable decoding on a value.
+     *
+     * @param string $value
+     * @return string Returns the mime encode value without the last line ending
+     */
+    public static function mimeDecodeValue($value)
+    {
+        return iconv_mime_decode($value, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8');
     }
 
     /**

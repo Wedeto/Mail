@@ -61,8 +61,25 @@ class Address
      * @param string $name The name of the recipient
      * @throws InvalidArgumentException when the e-mail address is not valid
      */
-    public function __construct(string $email, string $name = null)
+    public function __construct($email, string $name = null)
     {
+        if (is_array($email))
+        {
+            reset($email);
+            $key = key($email)
+            $value = current($email);
+            if (is_string($key) && is_string($value))
+            {
+                $email = $key;
+                $name = $value;
+            }
+            elseif (is_string($value))
+                $email = $value;
+        }
+
+        if (!is_string($email))
+            throw new \InvalidArgumentException("Invalid e-mail address: " . gettype($email));
+
         // First check if there is a name and e-mail embedded in one string
         if (preg_match('/(.*)<([^\s]+)>/', $email, $match))
         {
