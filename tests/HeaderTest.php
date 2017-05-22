@@ -61,7 +61,7 @@ class HeaderTest extends TestCase
         $expected = "=?UTF-8?Q?foobarblahblahblah=20baz=20batfoobarblahblahblah=20baz=20?=\r\n"
                     . " =?UTF-8?Q?batfoobarblahblahblah=20baz=20bat?=";
 
-        $test = Header::wrap($string, 'UTF-8');
+        $test = Header::wrap($string, true, 78);
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
@@ -71,7 +71,7 @@ class HeaderTest extends TestCase
         $string   = 'Umlauts: ä';
         $expected = '=?UTF-8?Q?Umlauts:=20=C3=A4?=';
 
-        $test = Header::mimeEncodeValue($string, 'UTF-8', 78);
+        $test = Header::wrap($string, 'UTF-8', 78);
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }

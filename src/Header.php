@@ -113,11 +113,16 @@ class Header
         $encode = $always_encode || !Mime::isPrintable($value);
 
         if ($encode)
-            $encoded = Mime::encode($value, 'Q', $length, $eol, true);
+            $encoded = Mime::encode($value, 'Q', $length, $eol, false);
         else
             $encoded = wordwrap($value, $length, $eol);
 
         return $encoded;
+    }
+
+    public static function canBeEncoded(string $value)
+    {
+        return Mime::encode($value, 'Q', 1000, Header::EOL_FOLD, true) !== false;
     }
 
     /**

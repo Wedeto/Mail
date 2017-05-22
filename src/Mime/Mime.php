@@ -41,6 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Mime;
 
+use Wedeto\Util\ErrorInterceptor;
+
 /**
  * Support class for MultiPart Mime Messages
  */
@@ -72,8 +74,8 @@ class Mime
 
 	protected static $iconv_preferences = [
 		'scheme' => 'Q',
-		'input-charset' => 'utf-8',
-		'output-charset' => 'utf-8',
+		'input-charset' => 'UTF-8',
+		'output-charset' => 'UTF-8',
 		'line-length' => 76
 	];
 
@@ -128,7 +130,9 @@ class Mime
         $prefs['line-length'] = $length;
         $prefs['scheme'] = $scheme;
 
-        $str = substr(iconv_mime_encode('', $str, $prefs), 2);
+        $wrapper = new ErrorInterceptor('iconv_mime_encode');
+        $wrapper->registerError(E_NOTICE, "iconv_mime_encode");
+        $str = substr($wrapper->execute('', $str, $prefs), 2);
 
         // In header fields, the charset is encoded in the encoded string. In body fields,
         // the appropriate charset is passed as a separate header
