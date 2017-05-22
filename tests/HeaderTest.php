@@ -3,7 +3,7 @@
 This is part of Wedeto, the WEb DEvelopment TOolkit.
 It is published under the BSD 3-Clause License.
 
-Wedeto\Mail\HeaderWrap was adapted from Zend\Mail\Header\HeaderWrap.
+Wedeto\Mail\Header was adapted from Zend\Mail\Header\Headers.
 The modifications are: Copyright 2017, Egbert van der Wal <wedeto at pointpro dot nl>
 
 The original source code is copyright Zend Technologies USA Inc. The original
@@ -42,16 +42,16 @@ namespace Wedeto\Mail;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers Wedeto\Mail\HeaderWrap
+ * @covers Wedeto\Mail\Header
  */
-class HeaderWrapTest extends TestCase
+class HeaderTest extends TestCase
 {
     public function testWrapUnstructuredHeaderAscii()
     {
         $string = str_repeat('foobarblahblahblah baz bat', 4);
         $expected = wordwrap($string, 78, "\r\n ");
 
-        $test = HeaderWrap::wrap($string);
+        $test = Header::wrap($string);
         $this->assertEquals($expected, $test);
     }
 
@@ -61,7 +61,7 @@ class HeaderWrapTest extends TestCase
         $expected = "=?UTF-8?Q?foobarblahblahblah=20baz=20batfoobarblahblahblah=20baz=20?=\r\n"
                     . " =?UTF-8?Q?batfoobarblahblahblah=20baz=20bat?=";
 
-        $test = HeaderWrap::wrap($string, 'UTF-8');
+        $test = Header::wrap($string, 'UTF-8');
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
@@ -71,13 +71,13 @@ class HeaderWrapTest extends TestCase
         $string   = 'Umlauts: ä';
         $expected = '=?UTF-8?Q?Umlauts:=20=C3=A4?=';
 
-        $test = HeaderWrap::mimeEncodeValue($string, 'UTF-8', 78);
+        $test = Header::mimeEncodeValue($string, 'UTF-8', 78);
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
 
     /**
-     * Test that fails with HeaderWrap::canBeEncoded at lowest level:
+     * Test that fails with Header::canBeEncoded at lowest level:
      *   iconv_mime_encode(): Unknown error (7)
      *
      * which can be triggered as:
@@ -86,14 +86,14 @@ class HeaderWrapTest extends TestCase
     public function testCanBeEncoded()
     {
         $value   = "[#77675] New Issue:xxxxxxxxx xxxxxxx xxxxxxxx xxxxxxxxxxxxx xxxxxxxxxx xxxxxxxx, tähtaeg xx.xx, xxxx";
-        $res = HeaderWrap::canBeEncoded($value);
+        $res = Header::canBeEncoded($value);
         $this->assertTrue($res);
 
         $value = '';
         for ($i = 0; $i < 255; ++$i)
             $value .= chr($i);
 
-        $res = HeaderWrap::canBeEncoded($value);
+        $res = Header::canBeEncoded($value);
         $this->assertFalse($res);
     }
 }

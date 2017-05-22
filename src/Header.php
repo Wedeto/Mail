@@ -108,7 +108,7 @@ class Header
 		}
     }
 
-    protected function wrap(string $value, bool $always_encode = false, int $length = Mime::LINELENGTH, string $eol = Header::EOL_FOLD)
+    public static function wrap(string $value, bool $always_encode = false, int $length = Mime::LINELENGTH, string $eol = Header::EOL_FOLD)
     {
         $encode = $always_encode || !Mime::isPrintable($value);
 
