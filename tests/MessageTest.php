@@ -62,13 +62,13 @@ class MessageTest extends TestCase
 
     public function testSetsOrigDateHeaderByDefault()
     {
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
-        $this->assertTrue(isset($headers['Date']));
-        $header = $headers['Date'];
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
+        $this->assertTrue($header->has('Date'));
+
         $date = date('r');
         $date = substr($date, 0, 16);
-        $test = $header;
+        $test = $header->get('Date');
         $test = substr($test, 0, 16);
         $this->assertEquals($date, $test);
     }
@@ -79,10 +79,10 @@ class MessageTest extends TestCase
         $this->assertTrue($this->message->isValid());
     }
 
-    public function testHeadersMethodReturnsHeadersArray()
+    public function testHeadersMethodReturnsHeaderObject()
     {
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
     }
 
     public function testToMethodReturnsAddressListObject()
@@ -106,10 +106,10 @@ class MessageTest extends TestCase
     {
         $this->message->addFrom('zf-devteam@example.com');
         $from = $this->message->getFrom();
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
-        $this->assertTrue(isset($headers['From']));
-        $header = $headers['From'];
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
+        $this->assertTrue($header->has('From'));
+        $header = $header->get('From');
         $this->assertSame($header, $from);
     }
 
@@ -124,10 +124,10 @@ class MessageTest extends TestCase
     {
         $this->message->addCC('zf-devteam@example.com');
         $cc = $this->message->getCC();
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
-        $this->assertTrue(isset($headers['Cc']));
-        $header  = $headers['Cc'];
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
+        $this->assertTrue($header->has('Cc'));
+        $header = $header->get('Cc');
         $this->assertSame($header, $cc);
     }
 
@@ -142,10 +142,10 @@ class MessageTest extends TestCase
     {
         $this->message->addBCC('zf-devteam@example.com');
         $bcc = $this->message->getBCC();
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
-        $this->assertTrue(isset($headers['Bcc']));
-        $header = $headers['Bcc'];
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
+        $this->assertTrue($header->has('Bcc'));
+        $header = $header->get('Bcc');
         $this->assertSame($header, $bcc);
     }
 
@@ -160,10 +160,10 @@ class MessageTest extends TestCase
     {
         $this->message->addReplyTo('zf-devteam@example.com');
         $replyTo = $this->message->getReplyTo();
-        $headers = $this->message->getHeaders(false);
-        $this->assertTrue(is_array($headers));
-        $this->assertTrue(isset($headers['Reply-To']));
-        $header  = $headers['Reply-To'];
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
+        $this->assertTrue($header->has('Reply-To'));
+        $header = $header->get('Reply-To');
         $this->assertSame($header, $replyTo);
     }
 
@@ -175,8 +175,8 @@ class MessageTest extends TestCase
     public function testNullSenderDoesNotCreateHeader()
     {
         $sender = $this->message->getSender();
-        $headers = $this->message->getHeaders(true);
-        $this->assertFalse(isset($headers['Sender']));
+        $header = $this->message->getHeader();
+        $this->assertFalse($header->has('Sender'));
     }
 
     public function testSettingSenderCreatesAddressObject()
@@ -475,7 +475,7 @@ class MessageTest extends TestCase
     public function testSettingSubjectProxiesToHeader()
     {
         $this->message->setSubject('test subject');
-        $this->assertEquals('test subject', $this->message->getHeader('Subject', false));
+        $this->assertEquals('test subject', $this->message->getHeader()->get('Subject'));
     }
 
     public function testBodyIsEmptyByDefault()
@@ -538,8 +538,9 @@ class MessageTest extends TestCase
         $body->addPart($part);
 
         $this->message->setBody($body);
-        $this->assertEquals('1.0', $this->message->getHeader('Mime-Version', false));
-        $this->assertEquals('text/html', $this->message->getHeader('Content-type', false));
+        $header = $this->message->getHeader();
+        $this->assertEquals('1.0', $header->get('Mime-Version'));
+        $this->assertEquals('text/html', $header->get('Content-type')['type']);
     }
 
     public function testSettingUtf8MailBodyFromSinglePartMimeUtf8MessageSetsAppropriateHeaders()
@@ -557,9 +558,9 @@ class MessageTest extends TestCase
         $this->message->setBody($body);
 
         $this->assertContains(
-            'Content-Type: text/plain;' . Message::HEADER_FOLDING . 'charset="utf-8"' . Message::EOL
-            . 'Content-Transfer-Encoding: quoted-printable' . Message::EOL,
-            $this->message->getHeadersAsString()
+            'Content-Type: text/plain;' . Header::EOL_FOLD . 'charset="utf-8"' . Header::EOL
+            . 'Content-Transfer-Encoding: quoted-printable' . Header::EOL,
+            $this->message->getHeader()->toString()
         );
     }
 
@@ -576,11 +577,14 @@ class MessageTest extends TestCase
         $body->addPart($html);
 
         $this->message->setBody($body);
-        $headers = $this->message->getHeaders(true);
-        $this->assertTrue(is_array($headers));
+        $header = $this->message->getHeader();
+        $this->assertInstanceOf(Header::class, $header);
 
-        $this->assertEquals('1.0', $this->message->getHeader('mime-version', false));
-        $this->assertEquals("multipart/mixed;\r\n boundary=\"foo-bar\"", $this->message->getHeader('content-type', false));
+        $this->assertEquals('1.0', $this->message->getHeader()->get('mime-version'));
+        $this->assertEquals(
+            "Content-Type: multipart/mixed;\r\n boundary=\"foo-bar\"",
+            $this->message->getHeader()->get('content-type', Header::FORMAT_ENCODED)
+        );
     }
 
     public function testRetrievingBodyTextFromMessageWithMultiPartMimeBodyReturnsMimeSerialization()
@@ -598,7 +602,7 @@ class MessageTest extends TestCase
         $this->message->setBody($body);
 
         $text = $this->message->getBodyText();
-        $this->assertEquals($body->generateMessage(Message::EOL), $text);
+        $this->assertEquals($body->generateMessage(Header::EOL), $text);
         $this->assertContains('--foo-bar', $text);
         $this->assertContains('--foo-bar--', $text);
         $this->assertContains('Content-Type: text/plain', $text);
@@ -623,45 +627,15 @@ class MessageTest extends TestCase
         $this->assertEquals('This is a subject', $this->message->getSubject());
     }
 
-    public function testSettingNonAsciiEncodingForcesMimeEncodingOfSomeHeaders()
-    {
-        $this->message->addTo('zf-devteam@example.com', 'ZF DevTeam');
-        $this->message->addFrom('matthew@example.com', "Matthew Weier O'Phinney");
-        $this->message->addCC('zf-contributors@example.com', 'ZF Contributors List');
-        $this->message->addBCC('zf-crteam@example.com', 'ZF CR Team');
-        $this->message->setSubject('This is a subject');
-        $this->message->setEncoding('UTF-8');
-
-        $test = $this->message->getHeadersAsString();
-
-        $expected = '=?UTF-8?Q?ZF=20DevTeam?=';
-        $this->assertContains($expected, $test);
-        $this->assertContains('<zf-devteam@example.com>', $test);
-
-        $expected = "=?UTF-8?Q?Matthew=20Weier=20O'Phinney?=";
-        $this->assertContains($expected, $test, $test);
-        $this->assertContains('<matthew@example.com>', $test);
-
-        $expected = '=?UTF-8?Q?ZF=20Contributors=20List?=';
-        $this->assertContains($expected, $test);
-        $this->assertContains('<zf-contributors@example.com>', $test);
-
-        $expected = '=?UTF-8?Q?ZF=20CR=20Team?=';
-        $this->assertContains($expected, $test);
-        $this->assertContains('<zf-crteam@example.com>', $test);
-
-        $expected = 'Subject: =?UTF-8?Q?This=20is=20a=20subject?=';
-        $this->assertContains($expected, $test);
-    }
-
     public function testDefaultDateHeaderEncodingIsAlwaysAscii()
     {
         $this->message->setEncoding('utf-8');
-        $header = $this->message->getHeader('Date', false);
+        $header = $this->message->getHeader();
+
         $date = date('r');
         $date = substr($date, 0, 16);
-        $test = $header;
-        $test = substr($test, 0, 16);
+        $test = $header->get('Date', Header::FORMAT_ENCODED);
+        $test = substr($test, 6, 16);
         $this->assertEquals($date, $test);
     }
 
@@ -702,7 +676,7 @@ class MessageTest extends TestCase
             '<html><body><iframe src="http://example.com/"></iframe></body></html> <!--',
         ];
         $this->expectException(\InvalidArgumentException::class);
-        $this->message->{$recipientMethod}(implode(Message::EOL, $subject));
+        $this->message->{$recipientMethod}(implode(Header::EOL, $subject));
     }
 
     public function testDetectsCRLFInjectionViaSubject()
@@ -713,9 +687,9 @@ class MessageTest extends TestCase
             '',
             '<html><body><iframe src="http://example.com/"></iframe></body></html> <!--',
         ];
-        $this->message->setSubject(implode(Message::EOL, $subject));
+        $this->message->setSubject(implode(Header::EOL, $subject));
 
-        $serializedHeaders = implode(Message::EOL, $this->message->getHeaders(true));
+        $serializedHeaders = $this->message->getHeader()->toString();
         $this->assertContains('example', $serializedHeaders);
         $this->assertNotContains("\r\n<html>", $serializedHeaders);
     }
@@ -749,7 +723,7 @@ class MessageTest extends TestCase
         $this->message->addHeader('Content-Transfer-Encoding', Mime\Mime::ENCODING_QUOTEDPRINTABLE);
         $this->message->setBody($message);
 
-        $contentType = $this->message->getHeader('Content-Type', false);
+        $contentType = $this->message->getHeader()->get('Content-Type', Header::FORMAT_ENCODED);
         $this->assertTrue(is_string($contentType));
         $this->assertContains('multipart/alternative', $contentType);
         $this->assertContains($multipartContent->getMime()->boundary(), $contentType);

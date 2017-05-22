@@ -420,7 +420,7 @@ class Part implements PartInterface
 
             return $encodedStreamContents;
         }
-        return Mime::encode($this->content, $this->encoding, $EOL);
+        return Mime::encode($this->content, $this->encoding, Mime::LINELENGTH, $EOL, false);
     }
 
     /**

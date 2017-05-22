@@ -66,7 +66,7 @@ class Address
         if (is_array($email))
         {
             reset($email);
-            $key = key($email)
+            $key = key($email);
             $value = current($email);
             if (is_string($key) && is_string($value))
             {
@@ -136,7 +136,7 @@ class Address
     /**
      * @return string String representation of address
      */
-    public function toString(string $encoding = 'ASCII')
+    public function toString()
     {
         // E-mail address part
         $email = $this->getEmail();
@@ -153,11 +153,17 @@ class Address
         if (empty($name))
             return $email;
 
-        if (strpos($name, ',') !== false)
+        if (!Mime::isPrintable($name))
+        {
+            echo "THIS IS NOT PRINTABLE: {{ $name }}\n\n";
+            for ($i = 0; $i < strlen($name); ++$i)
+            {
+                echo "pos $i. " . ord(substr($name, $i, 1)) . "\n";
+            }
+            $name = Mime::encode($name, 'Q', 76, Header::EOL_FOLD, false);
+        }
+        elseif (strpos($name, ',') !== false)
             $name = sprintf('"%s"', str_replace('"', '\\"', $name));
-
-        if (!Mime::isPrintable($name) || $encoding === 'UTF-8')
-            $name = HeaderWrap::mimeEncodeValue($name, 'UTF-8');
 
         return sprintf('%s <%s>', $name, $email);
     }
