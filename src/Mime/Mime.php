@@ -123,8 +123,8 @@ class Mime
         $encoding = mb_internal_encoding() ?? "UTF-8";
 
         // Check if conversion is valid
-        $detected = mb_detect_encoding($str, mb_detect_order(), true);
-        if ($detected !== $encoding && $detected !== 'ASCII')
+        $valid_encoding = mb_check_encoding($str, $encoding);
+        if (!$valid_encoding)
             return false;
 
         $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
