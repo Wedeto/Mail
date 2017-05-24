@@ -50,7 +50,7 @@ class HeaderTest extends TestCase
     {
         $string = str_repeat('foobarblahblahblah baz bat', 4);
         $expected = 'foobarblahblahblah baz batfoobarblahblahblah baz batfoobarblahblahblah baz' . "\r\n" .
-            '  batfoobarblahblahblah baz bat';
+            ' batfoobarblahblahblah baz bat';
 
         $test = Header::wrap($string);
         $this->assertEquals($expected, $test);

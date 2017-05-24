@@ -110,6 +110,9 @@ class Header
 
     public static function wrap(string $value, bool $always_encode = false, string $prefix = '', string $eol = Header::EOL_FOLD)
     {
+        if (!$always_encode && Mime::isPrintable($value))
+            return $prefix . wordwrap($value, 76, Header::EOL_FOLD);
+
         return Mime::encode($value, 'Q', $prefix, $eol, false);
     }
 
