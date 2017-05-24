@@ -108,21 +108,14 @@ class Header
 		}
     }
 
-    public static function wrap(string $value, bool $always_encode = false, int $length = Mime::LINELENGTH, string $eol = Header::EOL_FOLD)
+    public static function wrap(string $value, bool $always_encode = false, string $prefix = '', string $eol = Header::EOL_FOLD)
     {
-        $encode = $always_encode || !Mime::isPrintable($value);
-
-        if ($encode)
-            $encoded = Mime::encode($value, 'Q', $length, $eol, false);
-        else
-            $encoded = wordwrap($value, $length, $eol);
-
-        return $encoded;
+        return Mime::encode($value, 'Q', $prefix, $eol, false);
     }
 
     public static function canBeEncoded(string $value)
     {
-        return Mime::encode($value, 'Q', 1000, Header::EOL_FOLD, true) !== false;
+        return Mime::encode($value, 'Q', '', Header::EOL_FOLD, false) !== false;
     }
 
     /**

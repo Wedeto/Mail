@@ -46,32 +46,33 @@ use PHPUnit\Framework\TestCase;
  */
 class HeaderTest extends TestCase
 {
-    public function testWrapUnstructuredHeaderAscii()
+    public function testWrapHeaderWithOnlyAscii()
     {
         $string = str_repeat('foobarblahblahblah baz bat', 4);
-        $expected = wordwrap($string, 78, "\r\n ");
+        $expected = 'foobarblahblahblah baz batfoobarblahblahblah baz batfoobarblahblahblah baz' . "\r\n" .
+            '  batfoobarblahblahblah baz bat';
 
         $test = Header::wrap($string);
         $this->assertEquals($expected, $test);
     }
 
-    public function testWrapUnstructuredHeaderMime()
+    public function testWrapHeaderWithAsciiAndUnicode()
     {
-        $string = str_repeat('foobarblahblahblah baz bat', 3);
-        $expected = "=?UTF-8?Q?foobarblahblahblah=20baz=20batfoobarblahblahblah=20baz=20?=\r\n"
-                    . " =?UTF-8?Q?batfoobarblahblahblah=20baz=20bat?=";
+        $string = str_repeat('foobarblahblahblah baz bät', 3);
+        $expected = 'foobarblahblahblah baz =?UTF-8?Q?b=C3=A4tfoobarblahblahblah=20baz=20b?=' . "\r\n"
+            . '  =?UTF-8?Q?=C3=A4tfoobarblahblahblah=20baz=20b=C3=A4t?=';
 
-        $test = Header::wrap($string, true, 78);
+        $test = Header::wrap($string, true, '');
         $this->assertEquals($expected, $test);
-        $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
+        $this->assertEquals($string, mb_decode_mimeheader($test));
     }
 
     public function testMimeEncoding()
     {
         $string   = 'Umlauts: ä';
-        $expected = '=?UTF-8?Q?Umlauts:=20=C3=A4?=';
+        $expected = 'Umlauts: =?UTF-8?Q?=C3=A4?=';
 
-        $test = Header::wrap($string, 'UTF-8', 78);
+        $test = Header::wrap($string, 'UTF-8', '');
         $this->assertEquals($expected, $test);
         $this->assertEquals($string, iconv_mime_decode($test, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
     }
@@ -94,6 +95,8 @@ class HeaderTest extends TestCase
             $value .= chr($i);
 
         $res = Header::canBeEncoded($value);
+        if ($res)
+            var_Dump(Header::wrap($value));
         $this->assertFalse($res);
     }
 }

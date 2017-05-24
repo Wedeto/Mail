@@ -72,13 +72,6 @@ class Mime
     protected $boundary;
     protected static $makeUnique = 0;
 
-	protected static $iconv_preferences = [
-		'scheme' => 'Q',
-		'input-charset' => 'UTF-8',
-		'output-charset' => 'UTF-8',
-		'line-length' => 76
-	];
-
     /**
      * Check if the given string is "printable"
      *
@@ -94,7 +87,7 @@ class Mime
     }
 
     /**
-     * Encode a string with either base64 or quoted-printable
+     * Encode a string with either base64 or quoted-printable. 
      *
      * @param string $str The string to encode
      * @param string $scheme The scheme to use - Mime::ENCODING_QUOTEDPRINTABLE or Mime::ENCODING_BASE64
@@ -109,7 +102,7 @@ class Mime
     public static function encode(
         string $str,
         string $scheme,
-        int $length,
+        string $prefix,
         string $eol,
         bool $strip_charset
     )
@@ -124,22 +117,24 @@ class Mime
         else
             throw new \InvalidArgumentException("Invalid encoding scheme: " . $scheme);
 
-        // encode, and strip the leading ': ' from the return value
-        $prefs = self::$iconv_preferences;
-        $prefs['line-break-chars'] = $eol;
-        $prefs['line-length'] = $length;
-        $prefs['scheme'] = $scheme;
+        $prefix_length = strlen($prefix);
 
-        $wrapper = new ErrorInterceptor('iconv_mime_encode');
-        $wrapper->registerError(E_NOTICE, "iconv_mime_encode");
-        $str = substr($wrapper->execute('', $str, $prefs), 2);
+        // Use mb_internal_encoding and fallback to UTF-8
+        $encoding = mb_internal_encoding() ?? "UTF-8";
+
+        // Check if conversion is valid
+        $detected = mb_detect_encoding($str, mb_detect_order(), true);
+        if ($detected !== $encoding && $detected !== 'ASCII')
+            return false;
+
+        $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
 
         // In header fields, the charset is encoded in the encoded string. In body fields,
         // the appropriate charset is passed as a separate header
         if ($strip_charset)
             $str = preg_replace(Mime::MIME_ENCODED_REGEX, "\\3", $str);
 
-        return $str;
+        return $prefix . $str;
     }
 
     /**
