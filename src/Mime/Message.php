@@ -41,6 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Mime;
 
+use InvalidArgumentException;
+
 /**
  * Class representing a Mime message
  */
@@ -110,7 +112,7 @@ class Message implements PartInterface
         {
             if ($part == $row)
             {
-                throw new Exception\InvalidArgumentException(sprintf(
+                throw new InvalidArgumentException(sprintf(
                     'Provided part %s already defined.',
                     $part->getId()
                 ));

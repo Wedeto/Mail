@@ -68,8 +68,8 @@ class MessageTest extends TestCase
 
         $date = date('r');
         $date = substr($date, 0, 16);
-        $test = $header->get('Date');
-        $test = substr($test, 0, 16);
+        $test = $header->get('Date', Header::FORMAT_ENCODED);
+        $test = substr($test, 6, 16);
         $this->assertEquals($date, $test);
     }
 
@@ -83,6 +83,42 @@ class MessageTest extends TestCase
     {
         $header = $this->message->getHeader();
         $this->assertInstanceOf(Header::class, $header);
+    }
+
+    public function testAddInvalidAddress()
+    {
+        $invalid_address = new \StdClass;
+
+        $funcs = ['addTo', 'setTo', 'addCc', 'setCc', 'addBcc', 'setBcc', 'addFrom', 'setFrom'];
+
+        foreach ($funcs as $func)
+        {
+            $thrown = false;
+            try
+            {
+                $this->message->$func($invalid_address);
+            }
+            catch (MailException $e)
+            {
+                $thrown = true;
+                $this->assertContains('Invalid address', $e->getMessage());
+            }
+            $this->assertTrue($thrown, "Calling $func with invalid address does not throw an exception");
+        }
+    }
+
+    public function testGetHeaderValue()
+    {
+        $dt = time() - 86400;
+        $this->message->addTo('foo@bar.com');
+
+        $to = $this->message->getHeaderValue('To', true);
+        $this->assertTrue(is_string($to));
+        $this->assertEquals('To: foo@bar.com', $to);
+
+        $this->message->getHeader()->set('Date', $dt);
+        $date = $this->message->getHeaderValue('Date', false);
+        $this->assertInstanceOf(\DateTime::class, $date);
     }
 
     public function testToMethodReturnsAddressListObject()
@@ -727,6 +763,33 @@ class MessageTest extends TestCase
         $this->assertTrue(is_string($contentType));
         $this->assertContains('multipart/alternative', $contentType);
         $this->assertContains($multipartContent->getMime()->boundary(), $contentType);
+    }
+
+    public function testToString()
+    {
+        $this->message->setBody('Test body')
+            ->addHeader('Date', 'Mon, 29 May 2017 10:23:24 +0200')
+            ->setFrom('foobar@wedeto.net', 'Foo Bar')
+            ->addTo('recip1@wedeto.net')
+            ->addTo('recip2@wedeto.net')
+            ->addCc('recip3@wedeto.net')
+            ->addCc('recip4@wedeto.net')
+            ->setSubject('Test subject');
+
+        $actual = $this->message->toString();
+        $expected = <<<MSG
+Date: Mon, 29 May 2017 10:23:24 +0200\r
+From: Foo Bar <foobar@wedeto.net>\r
+To: recip1@wedeto.net,\r
+ recip2@wedeto.net\r
+Cc: recip3@wedeto.net,\r
+ recip4@wedeto.net\r
+Subject: Test subject\r
+\r
+Test body
+MSG;
+
+        $this->assertEquals($expected, $actual);
     }
 }
 

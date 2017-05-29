@@ -114,11 +114,11 @@ class Part implements PartInterface
     }
 
     /**
-     * Set id
-     * @param string $id
+     * Set ID
+     * @param string $id The ID for the part
      * @return Wedeto\Mail\Mime\Part Provides fluent interface
      */
-    public function setId(string $id)
+    public function setID(string $id)
     {
         $this->id = $id;
         return $this;
@@ -128,17 +128,17 @@ class Part implements PartInterface
      * Generate id based on timestamp and filename
      * @return string The generated and set part ID
      */
-    public function generateId()
+    public function generateID()
     {
         $data = sha1(microtime(true) . $this->filename);
-        $this->setId(substr($data, 0, 8) . $this->filename);
+        $this->setID(substr($data, 0, 8) . $this->filename);
         return $this->getId();
     }
 
     /**
      * @return string The ID
      */
-    public function getId()
+    public function getID()
     {
         return $this->id;
     }
@@ -420,7 +420,8 @@ class Part implements PartInterface
 
             return $encodedStreamContents;
         }
-        return Mime::encode($this->content, $this->encoding, Mime::LINELENGTH, $EOL, false);
+
+        return Mime::encode($this->content, $this->encoding, null, $EOL);
     }
 
     /**

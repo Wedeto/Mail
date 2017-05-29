@@ -48,22 +48,35 @@ class AddressTest extends TestCase
 {
     public function testDoesNotRequireNameForInstantiation()
     {
-        $address = new Address('zf-devteam@zend.com');
-        $this->assertEquals('zf-devteam@zend.com', $address->getEmail());
+        $address = new Address('wedeto-team@wedeto.net');
+        $this->assertEquals('wedeto-team@wedeto.net', $address->getEmail());
         $this->assertNull($address->getName());
     }
 
     public function testAcceptsNameViaConstructor()
     {
-        $address = new Address('zf-devteam@zend.com', 'ZF DevTeam');
-        $this->assertEquals('zf-devteam@zend.com', $address->getEmail());
-        $this->assertEquals('ZF DevTeam', $address->getName());
+        $address = new Address('wedeto-team@wedeto.net', 'Wedeto DevTeam');
+        $this->assertEquals('wedeto-team@wedeto.net', $address->getEmail());
+        $this->assertEquals('Wedeto DevTeam', $address->getName());
     }
 
     public function testToStringCreatesStringRepresentation()
     {
-        $address = new Address('zf-devteam@zend.com', 'ZF DevTeam');
-        $this->assertEquals('ZF DevTeam <zf-devteam@zend.com>', $address->toString());
+        $address = new Address('wedeto-team@wedeto.net', 'Wedeto DevTeam');
+        $this->assertEquals('Wedeto DevTeam <wedeto-team@wedeto.net>', $address->toString());
+        $this->assertEquals('Wedeto DevTeam <wedeto-team@wedeto.net>', (string)$address);
+
+        $address = new Address('wedeto-team@wedeto.net');
+        $this->assertEquals('wedeto-team@wedeto.net', $address->toString());
+        $this->assertEquals('wedeto-team@wedeto.net', (string)$address);
+
+        $address = new Address('wedeto-team@wedeto.net', 'Wédétö');
+        $this->assertEquals('=?UTF-8?Q?W=C3=A9d=C3=A9t=C3=B6?= <wedeto-team@wedeto.net>', $address->toString());
+        $this->assertEquals('=?UTF-8?Q?W=C3=A9d=C3=A9t=C3=B6?= <wedeto-team@wedeto.net>', (string)$address);
+
+        $address = new Address('wedeto-team@wedeto.net', 'Bar, Foo');
+        $this->assertEquals('"Bar, Foo" <wedeto-team@wedeto.net>', $address->toString());
+        $this->assertEquals('"Bar, Foo" <wedeto-team@wedeto.net>', (string)$address);
     }
 
     /**
@@ -114,5 +127,30 @@ class AddressTest extends TestCase
             // Description => [sender address, sender name],
             'german IDN' => ['oau@ä-umlaut.de', null],
         ];
+    }
+
+    public function testConstructWithArray()
+    {
+        $address = new Address(['foobar@wedeto.net' => 'Foo Bar']);
+        $this->assertEquals('foobar@wedeto.net', $address->getEmail());
+        $this->assertEquals('Foo Bar', $address->getName());
+
+        $address = new Address(['foobar@wedeto.net']);
+        $this->assertEquals('foobar@wedeto.net', $address->getEmail());
+        $this->assertEmpty($address->getName());
+    }
+
+    public function testNonStringNonArrayThrowsException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid e-mail address');
+        $address = new Address(new \StdClass);
+    }
+
+    public function testConstructWithEmailAndNameInAString()
+    {
+        $address = new Address('Foo Bar <foobar@wedeto.net>');
+        $this->assertEquals('foobar@wedeto.net', $address->getEmail());
+        $this->assertEquals('Foo Bar', $address->getName());
     }
 }

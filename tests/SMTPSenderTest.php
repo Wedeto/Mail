@@ -163,6 +163,20 @@ class SMTPSenderTest extends TestCase
         $this->assertContains("\r\n\r\nThis is only a test.", $data, $data);
     }
 
+    public function testReusingConnectionIssuesRset()
+    {
+        $message = $this->getMessage();
+        $this->transport->send($message);
+        $log = $this->connection->getLog();
+
+        $message = $this->getMessage();
+        $this->transport->send($message);
+        $log2 = $this->connection->getLog();
+
+        $expected = $log . "RSET" . str_replace("EHLO localhost", "", $log);
+        $this->assertEquals($expected, $log2);
+    }
+
     public function testSetAutoDisconnect()
     {
         $this->transport->setAutoDisconnect(false);
@@ -207,5 +221,19 @@ class SMTPSenderTest extends TestCase
         $this->assertFalse($this->connection->hasSession());
         $this->transport->send($this->getMessage());
         $this->assertTrue($this->connection->hasSession());
+    }
+
+    public function testOptions()
+    {
+        $expected = ['foo' => 'bar'];
+        $this->transport = new SMTPSender(['foo' => 'bar']);
+        $this->assertTrue(isset($this->transport->getOptions()['foo']));
+        $this->assertEquals($expected['foo'], $this->transport->getOptions()['foo']);
+
+        $expected2 = $expected;
+        $expected2['baz'] = 'boo';
+        $this->assertSame($this->transport, $this->transport->setOptions($expected2));
+        $this->assertTrue(isset($this->transport->getOptions()['baz']));
+        $this->assertEquals($expected2['baz'], $this->transport->getOptions()['baz']);
     }
 }

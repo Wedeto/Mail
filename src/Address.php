@@ -88,10 +88,14 @@ class Address
         }
 
         $filtered = filter_var($email, FILTER_VALIDATE_EMAIL);
-        if ($filtered === false && mb_strlen($email) !== strlen($email))
+        if ($filtered === false && !Mime::isPrintable($email))
         {
             if (!function_exists('idn_to_ascii'))
-                throw new \RuntimeException("E-mail address contains multi-byte characters but php-idn extension is not available");
+            {
+                // @codeCoverageIgnoreStart
+                throw new \RuntimeException("E-mail address contains non-ASCII characters but php-idn extension is not available");
+                // @codeCoverageIgnoreEnd
+            }
 
             // Unicode needs to be punycoded
             $parts = explode('@', $email);
@@ -154,14 +158,7 @@ class Address
             return $email;
 
         if (!Mime::isPrintable($name))
-        {
-            echo "THIS IS NOT PRINTABLE: {{ $name }}\n\n";
-            for ($i = 0; $i < strlen($name); ++$i)
-            {
-                echo "pos $i. " . ord(substr($name, $i, 1)) . "\n";
-            }
-            $name = Mime::encode($name, 'Q', 76, Header::EOL_FOLD, false);
-        }
+            $name = Mime::encode($name, 'Q', '', Header::EOL);
         elseif (strpos($name, ',') !== false)
             $name = sprintf('"%s"', str_replace('"', '\\"', $name));
 

@@ -55,8 +55,8 @@ class Header implements Iterator
     const ALLOWABLE_DATE_WINDOW = 365 * 86400; // 1 year
 
     protected static $ADDRESS_HEADERS = ['From', 'To', 'Reply-To', 'Cc', 'Bcc', 'Sender'];
-    protected static $STRUCTURED_HEADERS = ['Date', 'Received'];
-    protected static $RESTRICTED_HEADERS = ['Return-Path'];
+    protected static $STRUCTURED_HEADERS = ['Date'];
+    protected static $RESTRICTED_HEADERS = ['Return-Path', 'Received'];
     
     protected $encoding = 'ASCII';
     protected $header_fields = [];
@@ -108,7 +108,7 @@ class Header implements Iterator
             case 'Content-Type':
                 return $this->getContentType($format);
             case 'Date':
-                return $name . ': ' . $value;
+                return $name . ': ' . $value->format('r');
 			default:
 				return $name . ': ' . $this->wrap($value);
 		}
@@ -302,7 +302,6 @@ class Header implements Iterator
         if (!($value instanceof \DateTimeInterface))
             throw new \InvalidArgumentException("Date must be DateTime, IntlCalendar, date string or valid Unix timestamp");
 
-        $value = $value->format('r');
         $this->header_fields['Date'] = $value;
         return $this;
     }

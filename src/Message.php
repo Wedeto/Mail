@@ -147,7 +147,7 @@ class Message
      */
     public function setFrom($address, string $name = null)
     {
-        $this->header->setAddress('From', $address, $name);
+        $this->addAddresses('From', $address, $name, true);
         return $this;
     }
 
@@ -208,7 +208,7 @@ class Message
      */
     public function addFrom($address, string $name = null)
     {
-        return $this->addAddresses('From', $address, $name);
+        return $this->addAddresses('From', $address, $name, false);
     }
 
     /**
@@ -500,7 +500,7 @@ class Message
     {
         $header = $this->header->toString();
         return $header
-               . self::EOL
+               . Header::EOL
                . $this->getBodyText();
     }
 }

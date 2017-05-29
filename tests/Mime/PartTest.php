@@ -41,6 +41,8 @@ namespace Wedeto\Mail\Mime;
 
 use PHPUnit\Framework\TestCase;
 
+use InvalidArgumentException;
+
 /**
  * @covers Wedeto\Mail\Mime\Part
  */
@@ -56,19 +58,19 @@ class PartTest extends TestCase
     {
         $this->testText = 'safdsafsa�lg ��gd�� sd�jg�sdjg�ld�gksd�gj�sdfg�dsj'
             .'�gjsd�gj�dfsjg�dsfj�djs�g kjhdkj fgaskjfdh gksjhgjkdh gjhfsdghdhgksdjhg';
-        $this->part = new Mime\Part($this->testText);
-        $this->part->encoding = Mime\Mime::ENCODING_BASE64;
-        $this->part->type = "text/plain";
-        $this->part->filename = 'test.txt';
-        $this->part->disposition = 'attachment';
-        $this->part->charset = 'iso8859-1';
-        $this->part->id = '4711';
+        $this->part = new Part($this->testText);
+        $this->part->setEncoding(Mime::ENCODING_BASE64);
+        $this->part->setType("text/plain");
+        $this->part->setFilename('test.txt');
+        $this->part->setDisposition(Mime::DISPOSITION_ATTACHMENT);
+        $this->part->setCharset('iso8859-1');
+        $this->part->setID('4711');
     }
 
     public function testHeaders()
     {
         $expectedHeaders = ['Content-Type: text/plain',
-                                 'Content-Transfer-Encoding: ' . Mime\Mime::ENCODING_BASE64,
+                                 'Content-Transfer-Encoding: ' . Mime::ENCODING_BASE64,
                                  'Content-Disposition: attachment',
                                  'filename="test.txt"',
                                  'charset=iso8859-1',
@@ -87,11 +89,11 @@ class PartTest extends TestCase
         $content = $this->part->getContent();
         $this->assertEquals($this->testText, base64_decode($content));
         // Test with quotedPrintable Encoding:
-        $this->part->encoding = Mime\Mime::ENCODING_QUOTEDPRINTABLE;
+        $this->part->setEncoding(Mime::ENCODING_QUOTEDPRINTABLE);
         $content = $this->part->getContent();
         $this->assertEquals($this->testText, quoted_printable_decode($content));
         // Test with 8Bit encoding
-        $this->part->encoding = Mime\Mime::ENCODING_8BIT;
+        $this->part->setEncoding(Mime::ENCODING_8BIT);
         $content = $this->part->getContent();
         $this->assertEquals($this->testText, $content);
     }
@@ -104,8 +106,8 @@ class PartTest extends TestCase
         // Test Base64
         $fp = fopen($testfile, 'rb');
         $this->assertInternalType('resource', $fp);
-        $part = new Mime\Part($fp);
-        $part->encoding = Mime\Mime::ENCODING_BASE64;
+        $part = new Part($fp);
+        $part->setEncoding(Mime::ENCODING_BASE64);
         $fp2 = $part->getEncodedStream();
         $this->assertInternalType('resource', $fp2);
         $encoded = stream_get_contents($fp2);
@@ -115,8 +117,8 @@ class PartTest extends TestCase
         // test QuotedPrintable
         $fp = fopen($testfile, 'rb');
         $this->assertInternalType('resource', $fp);
-        $part = new Mime\Part($fp);
-        $part->encoding = Mime\Mime::ENCODING_QUOTEDPRINTABLE;
+        $part = new Part($fp);
+        $part->setEncoding(Mime::ENCODING_QUOTEDPRINTABLE);
         $fp2 = $part->getEncodedStream();
         $this->assertInternalType('resource', $fp2);
         $encoded = stream_get_contents($fp2);
@@ -135,16 +137,16 @@ class PartTest extends TestCase
         $original = file_get_contents($testfile);
 
         $fp = fopen($testfile, 'rb');
-        $part = new Mime\Part($fp);
-        $part->encoding = Mime\Mime::ENCODING_BASE64;
+        $part = new Part($fp);
+        $part->setEncoding(Mime::ENCODING_BASE64);
         $contentEncodedFirstTime  = $part->getContent();
         $contentEncodedSecondTime = $part->getContent();
         $this->assertEquals($contentEncodedFirstTime, $contentEncodedSecondTime);
         fclose($fp);
 
         $fp = fopen($testfile, 'rb');
-        $part = new Mime\Part($fp);
-        $part->encoding = Mime\Mime::ENCODING_QUOTEDPRINTABLE;
+        $part = new Part($fp);
+        $part->setEncoding(Mime::ENCODING_QUOTEDPRINTABLE);
         $contentEncodedFirstTime  = $part->getContent();
         $contentEncodedSecondTime = $part->getContent();
         $this->assertEquals($contentEncodedFirstTime, $contentEncodedSecondTime);
@@ -153,14 +155,14 @@ class PartTest extends TestCase
 
     public function testSettersGetters()
     {
-        $part = new Mime\Part();
+        $part = new Part();
         $part->setContent($this->testText)
-             ->setEncoding(Mime\Mime::ENCODING_8BIT)
+             ->setEncoding(Mime::ENCODING_8BIT)
              ->setType('text/plain')
              ->setFilename('test.txt')
              ->setDisposition('attachment')
              ->setCharset('iso8859-1')
-             ->setId('4711')
+             ->setID('4711')
              ->setBoundary('frontier')
              ->setLocation('fiction1/fiction2')
              ->setLanguage('en')
@@ -169,12 +171,12 @@ class PartTest extends TestCase
              ->setDescription('foobar');
 
         $this->assertEquals($this->testText, $part->getContent());
-        $this->assertEquals(Mime\Mime::ENCODING_8BIT, $part->getEncoding());
+        $this->assertEquals(Mime::ENCODING_8BIT, $part->getEncoding());
         $this->assertEquals('text/plain', $part->getType());
         $this->assertEquals('test.txt', $part->getFileName());
         $this->assertEquals('attachment', $part->getDisposition());
         $this->assertEquals('iso8859-1', $part->getCharset());
-        $this->assertEquals('4711', $part->getId());
+        $this->assertEquals('4711', $part->getID());
         $this->assertEquals('frontier', $part->getBoundary());
         $this->assertEquals('fiction1/fiction2', $part->getLocation());
         $this->assertEquals('en', $part->getLanguage());
@@ -203,8 +205,8 @@ class PartTest extends TestCase
      */
     public function testConstructorRaisesInvalidArgumentExceptionForInvalidContentTypes($content)
     {
-        $this->setExpectedException(Mime\Exception\InvalidArgumentException::class);
-        new Mime\Part($content);
+        $this->expectException(InvalidArgumentException::class);
+        new Part($content);
     }
 
     /**
@@ -212,8 +214,8 @@ class PartTest extends TestCase
      */
     public function testSetContentRaisesInvalidArgumentExceptionForInvalidContentTypes($content)
     {
-        $part = new Mime\Part();
-        $this->setExpectedException(Mime\Exception\InvalidArgumentException::class);
+        $part = new Part();
+        $this->expectException(InvalidArgumentException::class);
         $part->setContent($content);
     }
 }

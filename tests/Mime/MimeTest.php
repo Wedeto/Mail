@@ -41,6 +41,8 @@ namespace Wedeto\Mail\Mime;
 
 use PHPUnit\Framework\TestCase;
 
+use InvalidArgumentException;
+
 /**
  * @covers Wedeto\Mail\Mime\Mime
  */
@@ -52,11 +54,13 @@ class MimeTest extends TestCase
     public function setUp()
     {
         $this->_originaltimezone = date_default_timezone_get();
+        mb_internal_encoding("UTF-8");
     }
 
     public function tearDown()
     {
         date_default_timezone_set($this->_originaltimezone);
+        mb_internal_encoding("UTF-8");
     }
 
     public function testBoundary()
@@ -105,6 +109,12 @@ class MimeTest extends TestCase
 
         $expected = str_repeat('a', Mime::LINELENGTH - 2) . "=\na.bbb";
         $this->assertEquals($expected, $qp);
+
+        $text = str_repeat('.', Mime::LINELENGTH + 1);
+        $qp = Mime::encode($text, 'Q');
+
+        $expected = str_repeat('.', Mime::LINELENGTH - 1) . "=\n..";
+        $this->assertEquals($expected, $qp);
     }
 
     public function testQuotedPrintableDoesNotBreakOctets()
@@ -113,7 +123,13 @@ class MimeTest extends TestCase
         $qp = Mime::encode($text, 'Q');
 
         $expected = str_repeat('a', Mime::LINELENGTH - 3) . "=\n=3D.bbb";
+        $this->assertEquals($expected, $qp);
 
+        // Other breaking point
+        $text = str_repeat('a', Mime::LINELENGTH - 2) . '=.bbb';
+        $qp = Mime::encode($text, 'Q');
+
+        $expected = str_repeat('a', Mime::LINELENGTH - 2) . "=\n=3D.bbb";
         $this->assertEquals($expected, $qp);
     }
 
@@ -221,5 +237,71 @@ class MimeTest extends TestCase
     public function testCharsetDetection($expected, $string)
     {
         $this->assertEquals($expected, Mime::mimeDetectCharset($string));
+    }
+
+    public function testEncodingRaw()
+    {
+        $str = "foo bar boo baz";
+        $this->assertEquals($str, Mime::encode($str, Mime::ENCODING_7BIT));
+
+        $thrown = false;
+        $str = "föö bär boo baz";
+        try
+        {
+            Mime::encode($str, Mime::ENCODING_7BIT);
+        }
+        catch (InvalidArgumentException $e)
+        {
+            $this->assertContains('Invalid characters in 7-bit encoding', $e->getMessage());
+            $thrown = true;
+        }
+
+        $this->assertTrue($thrown);
+        $this->assertEquals($str, Mime::encode($str, Mime::ENCODING_8BIT));
+    }
+
+    public function testInvalidEncoding()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid encoding scheme: foo");
+
+        Mime::encode('foo bar', 'foo');
+    }
+
+    public function testIncorrectCharset()
+    {
+        $utf8 = "föö bär";
+        $iso88591 = mb_convert_encoding($utf8, "iso-8859-1", "utf-8");
+        $utf32 = mb_convert_encoding($utf8, "utf-32le", "utf-8");
+
+        mb_internal_encoding("UTF-8");
+        $this->assertEquals('Subject: =?UTF-8?Q?f=C3=B6=C3=B6=20b=C3=A4r?=', Mime::encode($utf8, 'Q', 'Subject'));
+        $this->assertFalse(Mime::encode($iso88591, 'Q', 'Subject'));
+        $this->assertFalse(Mime::encode($utf32, 'Q', 'Subject'));
+
+        mb_internal_encoding("ISO-8859-1");
+        $this->assertEquals('Subject: =?ISO-8859-1?Q?f=F6=F6=20b=E4r?=', Mime::encode($iso88591, 'Q', 'Subject'));
+
+        // ISO-8859-1 will conform to UTF-8 codes
+        $this->assertEquals('Subject: =?ISO-8859-1?Q?f=C3=B6=C3=B6=20b=C3=A4r?=', Mime::encode($utf8, 'Q', 'Subject'));
+
+        mb_internal_encoding("UTF-32LE");
+        $encoded = Mime::encode($utf32, 'Q', 'Subject');
+        $this->assertEquals('Subject: =?UTF-32LE?Q?f=F6=F6=20b=E4r?=', $encoded);
+        $this->assertFalse(Mime::encode($utf8, 'Q', 'Subject'));
+        $this->assertFalse(Mime::encode($iso88591, 'Q', 'Subject'));
+    }
+
+    public function testBoundaryStartAndEnd()
+    {
+        $m = new Mime;
+
+        $boundary = $m->boundary();
+        
+        $boundary_start = $m->boundaryLine();
+        $boundary_end = $m->mimeEnd();
+
+        $this->assertEquals("\n--{$boundary}\n", $boundary_start);
+        $this->assertEquals("\n--{$boundary}--\n", $boundary_end);
     }
 }

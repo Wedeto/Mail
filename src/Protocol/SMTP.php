@@ -118,13 +118,27 @@ class SMTP extends AbstractProtocol
         parent::__construct($config);
     }
 
+    /**
+     * Set optiions for the SMTP connection
+     * @param array $config The options to set
+     * @return SMTP Provides fluent interface
+     */
     public function setOptions(array $config)
     {
         $this->disconnect();
-        $config = $this->validateOptions($options);
+        $config = $this->validateOptions($config);
         $this->config = $config;
         $this->host = $config['host'];
         $this->port = $config['port'];
+        return $this;
+    }
+
+    /**
+     * @return array The configured options
+     */
+    public function getOptions()
+    {
+        return $this->config;
     }
 
     /** 

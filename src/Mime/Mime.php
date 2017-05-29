@@ -41,6 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Mime;
 
+use InvalidArgumentException;
+
 use Wedeto\Util\ErrorInterceptor;
 
 /**
@@ -66,7 +68,6 @@ class Mime
                         . '\x7b-\x7ea-zA-Z0-9]+)\?(?P<encoding>[\x21\x23-\x26'
                         . '\x2a\x2b\x2d\x5e\5f\60\x7b-\x7ea-zA-Z0-9]+)\?(?P'
                         . '<text>[\x21-\x3e\x40-\x7e]+)#';
-    const MIME_ENCODED_REGEX = "/=\\?([^?]+)\\?(Q|B)\\?([\x30-\x7e]*)\\?=/";
     const MIME_NOT_PRINTABLE_REGEX = '/[^\x20-\x7e]/';
     const QUOTED_PRINTABLE_OCTET_REGEX = '/=[0-9A-F]{2}/';
 
@@ -104,14 +105,19 @@ class Mime
     )
     {
         if ($scheme === Mime::ENCODING_7BIT || $scheme === Mime::ENCODING_8BIT)
+        {
+            if ($scheme === Mime::ENCODING_7BIT && preg_match('/[\x80-\xFF]/', $str))
+                throw new InvalidArgumentException("Invalid characters in 7-bit encoding");
+
             return $header === null ? $str : $header . ': ' . $str;
+        }
 
         if ($scheme === self::ENCODING_QUOTEDPRINTABLE || $scheme === 'Q')
             $scheme = 'Q';
         elseif ($scheme === self::ENCODING_BASE64 || $scheme === 'B')
             $scheme = 'B';
         else
-            throw new \InvalidArgumentException("Invalid encoding scheme: " . $scheme);
+            throw new InvalidArgumentException("Invalid encoding scheme: " . $scheme);
 
         $prefix = empty($header) ? '' : $header . ': ';
         $prefix_length = strlen($prefix);
@@ -136,8 +142,12 @@ class Mime
             if (!$valid_encoding)
                 return false;
 
-            // Perform encoding
+            // Perform encoding 
             $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
+            
+            $lc_enc = strtolower($encoding);
+            if (strpos($lc_enc, "utf-32") !== false || strpos($lc_enc, "utf-16") !== false)
+                $str = str_replace(chr(0), '', $str);
         }
 
         // Return encoded string
@@ -198,8 +208,8 @@ class Mime
             if ($next_char === '.')
             {
                 // Line full of dots, one may go missing
-                echo "WARNING: Dot may go missing\n";
-                $end_pos = min($length, $start_pos + Mime::LINELENGTH);
+                $end_pos = $start_pos + Mime::LINELENGTH;
+                $end_pos = $end_pos < $length ? $end_pos - 1 : $length;
                 $wrapped_str .= $nl . substr($str, $start_pos, $end_pos - $start_pos);
             }
             elseif ($next_char === null)
