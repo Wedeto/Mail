@@ -42,9 +42,11 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\Mail;
 
 use Traversable;
+use Iterator;
+
 use Wedeto\Mail\Mime\Mime;
 
-class Header
+class Header implements Iterator
 {
     const FORMAT_RAW = 'RAW';
     const FORMAT_ENCODED = 'ENCODED';
@@ -58,6 +60,9 @@ class Header
     
     protected $encoding = 'ASCII';
     protected $header_fields = [];
+
+    protected $keys = [];
+    protected $iterator = 0;
 
     /**
      * Check if the header has a value for the specified header field
@@ -98,6 +103,7 @@ class Header
             case 'Reply-To':
             case 'Cc':
             case 'Bcc':
+            case 'Sender':
                 return $this->getAddress($name, $format);
             case 'Content-Type':
                 return $this->getContentType($format);
@@ -142,7 +148,7 @@ class Header
         foreach ($value as $address)
             $values[] = $address->toString();
 
-        return implode(self::EOL_FOLD, $values);
+        return implode(',' . self::EOL_FOLD, $values);
     }
 
     /**
@@ -154,6 +160,12 @@ class Header
     public function set(string $name, $value)
     {
         $name = self::normalizeHeader($name);
+
+        if (empty($value))
+        {
+            unset($this->header_fields[$name]);
+            return $this;
+        }
 
         switch ($name)
         {
@@ -276,7 +288,7 @@ class Header
             $value = $value->toDateTime();
 
         if (is_string($value))
-            $value = strtotime($value);
+            $value = new \DateTime($value);
 
         if (is_int($value))
         {
@@ -309,7 +321,10 @@ class Header
         if ($structured || $address)
             throw new \LogicException("setHeader should not be reachable with structured or address headers");
 
-		$this->header_fields[$name] = $value;
+        if (empty($value))
+            unset($this->header_fields[$name]);
+        else
+            $this->header_fields[$name] = $value;
         return $this;
 	}
 
@@ -328,7 +343,11 @@ class Header
     {
         $header_lines = [];
         foreach (array_keys($this->header_fields) as $field)
+        {
+            if ($field === 'Bcc')
+                continue;
             $header_lines[] = $this->get($field, Header::FORMAT_ENCODED);
+        }
         return implode(Header::EOL, $header_lines) . Header::EOL;
     }
 
@@ -344,5 +363,50 @@ class Header
         $name = ucwords($name);
         $name = str_replace(' ', '-', $name);
         return $name;
+    }
+
+    /**
+     * @return string The current header value
+     */
+    public function current()
+    {
+        $key = $this->key();
+        return $key === "Content-Type" ?
+                $this->getContentType(Header::FORMAT_ENCODED)
+            :
+                $this->getHeader($key, Header::FORMAT_RAW);
+    }
+
+    /**
+     * Return the currenct key
+     */
+    public function key()
+    {
+        return $this->keys[$this->iterator];
+    }
+
+    /**
+     * Advance the iterator position
+     */
+    public function next()
+    {
+        ++$this->iterator;
+    }
+
+    /**
+     * Set the iterator to the first element
+     */
+    public function rewind()
+    {
+        $this->keys = array_keys($this->header_fields);
+        $this->iterator = 0;
+    }
+
+    /**
+     * @return bool True if the iterator is valid, false if it is not
+     */
+    public function valid()
+    {
+        return isset($this->keys[$this->iterator]) && isset($this->header_fields[$this->keys[$this->iterator]]);
     }
 }

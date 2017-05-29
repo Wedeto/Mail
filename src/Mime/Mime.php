@@ -68,6 +68,7 @@ class Mime
                         . '<text>[\x21-\x3e\x40-\x7e]+)#';
     const MIME_ENCODED_REGEX = "/=\\?([^?]+)\\?(Q|B)\\?([\x30-\x7e]*)\\?=/";
     const MIME_NOT_PRINTABLE_REGEX = '/[^\x20-\x7e]/';
+    const QUOTED_PRINTABLE_OCTET_REGEX = '/=[0-9A-F]{2}/';
 
     protected $boundary;
     protected static $makeUnique = 0;
@@ -91,24 +92,19 @@ class Mime
      *
      * @param string $str The string to encode
      * @param string $scheme The scheme to use - Mime::ENCODING_QUOTEDPRINTABLE or Mime::ENCODING_BASE64
-     * @param int $length The maximum line length
+     * @param string $header The name of the header field
      * @param string $eol The split for lines. Mime::EOL or Mime::EOL_FOLD should be used.
-     * @param bool $strip_charset False to leave the charset identifier in the
-     *                            encoded string, true to return only the
-     *                            encoded data. The former should be used in
-     *                            headers.
      * @return string The encoded string
      */
     public static function encode(
         string $str,
         string $scheme,
-        string $prefix,
-        string $eol,
-        bool $strip_charset
+        string $header = null,
+        string $eol = Mime::LINEEND
     )
     {
         if ($scheme === Mime::ENCODING_7BIT || $scheme === Mime::ENCODING_8BIT)
-            return $str;
+            return $header === null ? $str : $header . ': ' . $str;
 
         if ($scheme === self::ENCODING_QUOTEDPRINTABLE || $scheme === 'Q')
             $scheme = 'Q';
@@ -117,24 +113,102 @@ class Mime
         else
             throw new \InvalidArgumentException("Invalid encoding scheme: " . $scheme);
 
+        $prefix = empty($header) ? '' : $header . ': ';
         $prefix_length = strlen($prefix);
 
-        // Use mb_internal_encoding and fallback to UTF-8
-        $encoding = mb_internal_encoding() ?? "UTF-8";
+        if ($header === null)
+        {
+            // Body text
+            $str = $scheme === 'Q' ? 
+                    Mime::qprint($str, $eol)
+                :
+                    base64_encode($str);
 
-        // Check if conversion is valid
-        $valid_encoding = mb_check_encoding($str, $encoding);
-        if (!$valid_encoding)
-            return false;
+            return $str;
+        }
+        else
+        {
+            // Use mb_internal_encoding and fallback to UTF-8
+            $encoding = mb_internal_encoding() ?? "UTF-8";
 
-        $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
+            // Check if conversion is valid
+            $valid_encoding = mb_check_encoding($str, $encoding);
+            if (!$valid_encoding)
+                return false;
 
-        // In header fields, the charset is encoded in the encoded string. In body fields,
-        // the appropriate charset is passed as a separate header
-        if ($strip_charset)
-            $str = preg_replace(Mime::MIME_ENCODED_REGEX, "\\3", $str);
+            // Perform encoding
+            $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
+        }
 
+        // Return encoded string
         return $prefix . $str;
+    }
+
+    /**
+     * Encode the string using Quoted-Printable, suitable for a body message
+     */
+    public function qprint($str, $eol = Mime::LINEEND)
+    {
+        $str = quoted_printable_encode($str);
+
+        // Undo the wrapping
+        $str = str_replace("=\r\n", "", $str);
+
+        $wrapped_str = "";
+
+        // Re-wrap
+        $start_pos = 0;
+        $length = strlen($str);
+        while ($start_pos < $length)
+        {
+            $nl = $start_pos === 0 ? "" : "=" . $eol;
+            $end_pos = $start_pos + Mime::LINELENGTH;
+            
+            // When wrapping is needed, subtract 1 character. Otherwise,
+            // the length of the string is the end position
+            $end_pos = $end_pos < $length ? $end_pos - 1 : $length;
+
+            while ($end_pos > $start_pos)
+            {
+                // Avoid breaking octets
+                if (preg_match(Mime::QUOTED_PRINTABLE_OCTET_REGEX, substr($str, $end_pos - 2, 3)))
+                {
+                    $end_pos -= 2;
+                    continue;
+                }
+                elseif (preg_match(Mime::QUOTED_PRINTABLE_OCTET_REGEX, substr($str, $end_pos - 1, 3)))
+                {
+                    $end_pos -= 1;
+                    continue;
+                }
+
+                $next_char = $end_pos >= $length ? null : substr($str, $end_pos, 1);
+                if ($next_char === '.')
+                {
+                    --$end_pos;
+                    continue;
+                }
+                else
+                {
+                    $wrapped_str .= $nl . substr($str, $start_pos, $end_pos - $start_pos);
+                    break;
+                }
+            }
+
+            if ($next_char === '.')
+            {
+                // Line full of dots, one may go missing
+                echo "WARNING: Dot may go missing\n";
+                $end_pos = min($length, $start_pos + Mime::LINELENGTH);
+                $wrapped_str .= $nl . substr($str, $start_pos, $end_pos - $start_pos);
+            }
+            elseif ($next_char === null)
+                break;
+
+            $start_pos = $end_pos;
+        }
+
+        return $wrapped_str;
     }
 
     /**

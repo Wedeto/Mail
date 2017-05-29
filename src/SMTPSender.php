@@ -62,8 +62,6 @@ class SMTPSender
     /** Whether to disconnect on destruct */
     protected $autoDisconnect = true;
 
-    const EOL = "\r\n";
-
     /**
      * Create the SMTP transport
      *
@@ -191,7 +189,7 @@ class SMTPSender
         // Prepare message
         $from = $this->prepareFromAddress($message);
         $recipients = $this->prepareRecipients($message);
-        $headers = $this->prepareHeaders($message);
+        $header = $this->prepareHeader($message);
         $body = $this->prepareBody($message);
 
         if (count($recipients) === 0)
@@ -205,7 +203,7 @@ class SMTPSender
             $connection->rcpt($recipient);
 
         // Issue DATA command to client
-        $connection->data($headers . self::EOL . $body);
+        $connection->data($header . Header::EOL . $body);
         return true;
     }
 
@@ -254,33 +252,14 @@ class SMTPSender
      * Prepare header string from message
      *
      * @param  Message $message
-     * @return string The concatenated headers
+     * @return string The concatenated header
      */
-    protected function prepareHeaders(Message $message)
+    protected function prepareHeader(Message $message)
     {
-        $headers = $message->getHeaders();
-        unset($headers['Bcc']);
-
-        $parts = array();
-        foreach ($headers as $name => $value)
-        {
-            if (is_array($value))
-            {
-                // Must be e-mail addresses
-                $emails = array();
-                foreach ($value as $address)
-                    $emails[] = $address->toString();
-                $parts[] = $name . ': ' . implode(",\r\n ", $emails) . self::EOL;
-            }
-            else
-            {
-                if ($name !== "Content-Type")
-                    $value = HeaderWrap::wrap($value);
-                $parts[] = $name . ': '. $value . self::EOL;
-            }
-        }
-
-        return implode("", $parts);
+        //$header = $message->getHeader();
+        //$header->set('Bcc', null);
+        //$val = $header->get('Bcc');
+        return $message->getHeader()->toString();
     }
 
     /**

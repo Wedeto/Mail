@@ -5,7 +5,6 @@
     "homepage": "https://wedeto.net/",
     "require": {
         "Wedeto/IO": "0.9.*",
-        "Wedeto/Util": "0.9.*",
         "php": ">=7.0.0",
         "ext-mbstring": "*"
     },

@@ -40,44 +40,44 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\Mail\Protocol;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+
 use Wedeto\Mail\Message;
 use Wedeto\Mail\SMTPSender;
 
 require_once __DIR__ . '/SMTPProtocolSpy.php';
 
 /**
- * @covers Zend\Mail\Protocol\Smtp<extended>
+ * @covers Wedeto\Mail\Protocol\SMTP
  */
-class SmtpTest extends TestCase
+class SMTPTest extends TestCase
 {
     public $transport;
     public $connection;
 
     public function setUp()
     {
-        $this->transport  = new Smtp();
-        $this->connection = new SmtpProtocolSpy();
+        $this->transport = new SMTPSender();
+        $this->connection = new SMTPProtocolSpy();
         $this->transport->setConnection($this->connection);
     }
 
     public function testSendMinimalMail()
     {
-        $headers = new Headers();
-        $headers->addHeaderLine('Date', 'Sun, 10 Jun 2012 20:07:24 +0200');
         $message = new Message();
         $message
-            ->setHeaders($headers)
-            ->setSender('ralph.schindler@zend.com', 'Ralph Schindler')
+            ->addHeader('Date', 'Mon, 29 May 2017 10:23:24 +0200')
+            ->setSender('foo@bar.com', 'Foo Bar')
             ->setBody('testSendMailWithoutMinimalHeaders')
-            ->addTo('zf-devteam@zend.com', 'ZF DevTeam')
+            ->addTo('wedeto@wedeto.net', 'Wedeto DevTeam')
         ;
         $expectedMessage = "EHLO localhost\r\n"
-                           . "MAIL FROM:<ralph.schindler@zend.com>\r\n"
-                           . "RCPT TO:<zf-devteam@zend.com>\r\n"
+                           . "MAIL FROM:<foo@bar.com>\r\n"
+                           . "RCPT TO:<wedeto@wedeto.net>\r\n"
                            . "DATA\r\n"
-                           . "Date: Sun, 10 Jun 2012 20:07:24 +0200\r\n"
-                           . "Sender: Ralph Schindler <ralph.schindler@zend.com>\r\n"
-                           . "To: ZF DevTeam <zf-devteam@zend.com>\r\n"
+                           . "Date: Mon, 29 May 2017 10:23:24 +0200\r\n"
+                           . "Sender: Foo Bar <foo@bar.com>\r\n"
+                           . "To: Wedeto DevTeam <wedeto@wedeto.net>\r\n"
                            . "\r\n"
                            . "testSendMailWithoutMinimalHeaders\r\n"
                            . ".\r\n";
@@ -89,22 +89,20 @@ class SmtpTest extends TestCase
 
     public function testSendEscapedEmail()
     {
-        $headers = new Headers();
-        $headers->addHeaderLine('Date', 'Sun, 10 Jun 2012 20:07:24 +0200');
         $message = new Message();
         $message
-            ->setHeaders($headers)
-            ->setSender('ralph.schindler@zend.com', 'Ralph Schindler')
+            ->addHeader('Date', 'Mon, 29 May 2017 10:23:24 +0200')
+            ->setSender('foo@bar.com', 'Foo Bar')
             ->setBody("This is a test\n.")
-            ->addTo('zf-devteam@zend.com', 'ZF DevTeam')
+            ->addTo('wedeto@wedeto.net', 'Wedeto DevTeam')
         ;
         $expectedMessage = "EHLO localhost\r\n"
-            . "MAIL FROM:<ralph.schindler@zend.com>\r\n"
-            . "RCPT TO:<zf-devteam@zend.com>\r\n"
+            . "MAIL FROM:<foo@bar.com>\r\n"
+            . "RCPT TO:<wedeto@wedeto.net>\r\n"
             . "DATA\r\n"
-            . "Date: Sun, 10 Jun 2012 20:07:24 +0200\r\n"
-            . "Sender: Ralph Schindler <ralph.schindler@zend.com>\r\n"
-            . "To: ZF DevTeam <zf-devteam@zend.com>\r\n"
+            . "Date: Mon, 29 May 2017 10:23:24 +0200\r\n"
+            . "Sender: Foo Bar <foo@bar.com>\r\n"
+            . "To: Wedeto DevTeam <wedeto@wedeto.net>\r\n"
             . "\r\n"
             . "This is a test\r\n"
             . "..\r\n"
@@ -133,22 +131,22 @@ class SmtpTest extends TestCase
 
     public function testConnectHasVerboseErrors()
     {
-        $smtp = new TestAsset\ErroneousSmtp();
+        $smtp = new ErroneousSMTP();
 
-        $this->setExpectedExceptionRegExp('Zend\Mail\Protocol\Exception\RuntimeException', '/nonexistentremote/');
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('nonexistentremote');
 
         $smtp->connect('nonexistentremote');
     }
 
     public function testHmacMd5ReturnsExpectedHash()
     {
-        $this->auth = new Crammd5();
-        $class = new ReflectionClass('Zend\Mail\Protocol\Smtp\Auth\Crammd5');
-        $method = $class->getMethod('hmacMd5');
+        $class = new ReflectionClass(SMTP::class);
+        $method = $class->getMethod('hmacMD5');
         $method->setAccessible(true);
 
         $result = $method->invokeArgs(
-            $this->auth,
+            $this->connection,
             ['frodo', 'speakfriendandenter']
         );
 
@@ -156,7 +154,7 @@ class SmtpTest extends TestCase
     }
 }
 
-final class ErroneousSmtp extends AbstractProtocol
+final class ErroneousSMTP extends AbstractProtocol
 {
     public function connect($customRemote = null)
     {

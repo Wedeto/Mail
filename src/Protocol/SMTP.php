@@ -174,7 +174,7 @@ class SMTP extends AbstractProtocol
             throw new ProtocolException('Invalid HELO specified');
 
         if (!isset($options['helo']))
-            $options['helo'] = '127.0.0.1';
+            $options['helo'] = 'localhost';
 
         { // Validate HELO identification
             $f = filter_var($options['helo'], FILTER_VALIDATE_IP);

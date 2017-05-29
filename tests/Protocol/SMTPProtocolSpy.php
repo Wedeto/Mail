@@ -62,11 +62,6 @@ class SMTPProtocolSpy extends SMTP
         parent::disconnect();
     }
 
-    public function helo($serverName = '127.0.0.1')
-    {
-        parent::helo($serverName);
-    }
-
     public function quit()
     {
         $this->calledQuit = true;
@@ -79,25 +74,25 @@ class SMTPProtocolSpy extends SMTP
         $this->rcptTest = [];
     }
 
-    public function mail($from)
+    public function mail(string $from)
     {
         parent::mail($from);
     }
 
-    public function rcpt($to)
+    public function rcpt(string $to)
     {
         parent::rcpt($to);
         $this->rcpt = true;
         $this->rcptTest[] = $to;
     }
 
-    protected function _send($request)
+    protected function _send(string $request)
     {
         // Save request to internal log
         $this->_addLog($request . self::EOL);
     }
 
-    protected function _expect($code, $timeout = null)
+    protected function _expect($code, int $timeout = null)
     {
         return '';
     }

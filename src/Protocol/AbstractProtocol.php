@@ -85,19 +85,21 @@ abstract class AbstractProtocol
     /**
      * Constructor.
      *
-     * @param  string  $host OPTIONAL Hostname of remote connection (default: 127.0.0.1)
-     * @param  int $port OPTIONAL Port number (default: null)
+     * @param array $config Configuration for server
      * @throws Exception\RuntimeException
      */
-    public function __construct(array $config)
+    public function __construct(array $config = [])
     {
-        $ip_address = gethostbyname($config['host']);
+        $host = $config['host'] ?? 'localhost';
+        $port = $config['port'] ?? 25;
+
+        $ip_address = gethostbyname($host);
         $ip_address = filter_var($ip_address, FILTER_VALIDATE_IP);
         if ($ip_address === false)
-            throw new ProtocolException('Invalid SMTP server host: ' . $config['host']);
+            throw new ProtocolException('Invalid SMTP server host: ' . $host);
 
-        $this->host = $config['host'];
-        $this->port = $config['port'];
+        $this->host = $host;
+        $this->port = $port;
         $this->config = $config;
     }
 
@@ -211,7 +213,7 @@ abstract class AbstractProtocol
         }
         catch (\Throwable $e)
         {
-            throw new ProtocolException('Could not open socket', 0, $e);
+            throw new ProtocolException('Could not open socket to ' . $remote, 0, $e);
         }
 
         if ($this->socket === false)

@@ -40,6 +40,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Wedeto\Mail;
 
 use PHPUnit\Framework\TestCase;
+use Wedeto\Mail\Protocol\SMTPProtocolSpy;
 
 require_once __DIR__ . '/Protocol/SMTPProtocolSpy.php';
 
@@ -48,35 +49,31 @@ require_once __DIR__ . '/Protocol/SMTPProtocolSpy.php';
  */
 class SMTPSenderTest extends TestCase
 {
-    /** @var Smtp */
     public $transport;
-    /** @var SmtpProtocolSpy */
     public $connection;
 
     public function setUp()
     {
-        $this->transport  = new Smtp();
-        $this->connection = new SmtpProtocolSpy();
+        $this->transport = new SMTPSender();
+        $this->connection = new SMTPProtocolSpy();
         $this->transport->setConnection($this->connection);
     }
 
     public function getMessage()
     {
         $message = new Message();
-        $message->addTo('zf-devteam@zend.com', 'ZF DevTeam');
-        $message->addCc('matthew@zend.com');
-        $message->addBcc('zf-crteam@lists.zend.com', 'CR-Team, ZF Project');
+        $message->addTo('wedeto@wedeto.net', 'Wedeto DevTeam');
+        $message->addCc('johndoe@wedeto.net');
+        $message->addBcc('somepeople@lists.wedeto.net', 'Some Team, Wedeto Project');
         $message->addFrom([
-            'zf-devteam@zend.com',
-            'matthew@zend.com' => 'Matthew',
+            'wedeto@wedeto.net',
+            'johndoe@wedeto.net' => 'John Doe',
         ]);
-        $message->setSender('ralph.schindler@zend.com', 'Ralph Schindler');
+        $message->setSender('foobar@wedeto.net', 'Foo Bar');
         $message->setSubject('Testing Zend\Mail\Transport\Sendmail');
         $message->setBody('This is only a test.');
 
-        $message->getHeaders()->addHeaders([
-            'X-Foo-Bar' => 'Matthew',
-        ]);
+        $message->getHeader()->set('X-Foo-Bar', 'John Doe');
 
         return $message;
     }
@@ -86,10 +83,9 @@ class SMTPSenderTest extends TestCase
      */
     public function testSendMailWithoutMinimalHeaders()
     {
-        $this->setExpectedException(
-            'Zend\Mail\Transport\Exception\RuntimeException',
-            'transport expects either a Sender or at least one From address in the Message; none provided'
-        );
+        $this->expectException(MailException::class);
+        $this->expectExceptionMessage('No sender specified');
+
         $message = new Message();
         $this->transport->send($message);
     }
@@ -100,79 +96,25 @@ class SMTPSenderTest extends TestCase
      */
     public function testSendMailWithoutRecipient()
     {
-        $this->setExpectedException(
-            'Zend\Mail\Transport\Exception\RuntimeException',
-            'at least one recipient if the message has at least one header or body'
-        );
+        $this->expectException(MailException::class);
+        $this->expectExceptionMessage('Message must have at least one recipient');
+
         $message = new Message();
-        $message->setSender('ralph.schindler@zend.com', 'Ralph Schindler');
+        $message->setSender('foo@bar.com', 'Foo Bar');
         $this->transport->send($message);
-    }
-
-    public function testSendMailWithEnvelopeFrom()
-    {
-        $message = $this->getMessage();
-        $envelope = new Envelope([
-            'from' => 'mailer@lists.zend.com',
-        ]);
-        $this->transport->setEnvelope($envelope);
-        $this->transport->send($message);
-
-        $data = $this->connection->getLog();
-        $this->assertContains('MAIL FROM:<mailer@lists.zend.com>', $data);
-        $this->assertContains('RCPT TO:<matthew@zend.com>', $data);
-        $this->assertContains('RCPT TO:<zf-crteam@lists.zend.com>', $data);
-        $this->assertContains("From: zf-devteam@zend.com,\r\n Matthew <matthew@zend.com>\r\n", $data);
-    }
-
-    public function testSendMailWithEnvelopeTo()
-    {
-        $message = $this->getMessage();
-        $envelope = new Envelope([
-            'to' => 'users@lists.zend.com',
-        ]);
-        $this->transport->setEnvelope($envelope);
-        $this->transport->send($message);
-
-        $data = $this->connection->getLog();
-        $this->assertContains('MAIL FROM:<ralph.schindler@zend.com>', $data);
-        $this->assertContains('RCPT TO:<users@lists.zend.com>', $data);
-        $this->assertContains('To: ZF DevTeam <zf-devteam@zend.com>', $data);
-    }
-
-    public function testSendMailWithEnvelope()
-    {
-        $message = $this->getMessage();
-        $to = ['users@lists.zend.com', 'dev@lists.zend.com'];
-        $envelope = new Envelope([
-            'from' => 'mailer@lists.zend.com',
-            'to' => $to,
-        ]);
-        $this->transport->setEnvelope($envelope);
-        $this->transport->send($message);
-
-        $this->assertEquals($to, $this->connection->getRecipients());
-
-        $data = $this->connection->getLog();
-        $this->assertContains('MAIL FROM:<mailer@lists.zend.com>', $data);
-        $this->assertContains('RCPT TO:<users@lists.zend.com>', $data);
-        $this->assertContains('RCPT TO:<dev@lists.zend.com>', $data);
     }
 
     public function testSendMinimalMail()
     {
-        $headers = new Headers();
-        $headers->addHeaderLine('Date', 'Sun, 10 Jun 2012 20:07:24 +0200');
-
         $message = new Message();
-        $message->setHeaders($headers);
-        $message->setSender('ralph.schindler@zend.com', 'Ralph Schindler');
+        $message->addHeader('Date', 'Mon, 29 May 2017 10:23:24 +0200');
+        $message->setSender('foobar@wedeto.net', 'Foo Bar');
         $message->setBody('testSendMailWithoutMinimalHeaders');
-        $message->addTo('zf-devteam@zend.com', 'ZF DevTeam');
+        $message->addTo('wedeto@wedeto.net', 'Wedeto DevTeam');
 
-        $expectedMessage = "Date: Sun, 10 Jun 2012 20:07:24 +0200\r\n"
-            . "Sender: Ralph Schindler <ralph.schindler@zend.com>\r\n"
-            . "To: ZF DevTeam <zf-devteam@zend.com>\r\n"
+        $expectedMessage = "Date: Mon, 29 May 2017 10:23:24 +0200\r\n"
+            . "Sender: Foo Bar <foobar@wedeto.net>\r\n"
+            . "To: Wedeto DevTeam <wedeto@wedeto.net>\r\n"
             . "\r\n"
             . "testSendMailWithoutMinimalHeaders";
 
@@ -183,18 +125,15 @@ class SMTPSenderTest extends TestCase
 
     public function testSendMinimalMailWithoutSender()
     {
-        $headers = new Headers();
-        $headers->addHeaderLine('Date', 'Sun, 10 Jun 2012 20:07:24 +0200');
-
         $message = new Message();
-        $message->setHeaders($headers);
-        $message->setFrom('ralph.schindler@zend.com', 'Ralph Schindler');
+        $message->addHeader('Date', 'Mon, 29 May 2017 10:23:24 +0200');
+        $message->setFrom('foobar@wedeto.net', 'Foo Bar');
         $message->setBody('testSendMinimalMailWithoutSender');
-        $message->addTo('zf-devteam@zend.com', 'ZF DevTeam');
+        $message->addTo('wedeto@wedeto.net', 'Wedeto DevTeam');
 
-        $expectedMessage = "Date: Sun, 10 Jun 2012 20:07:24 +0200\r\n"
-            . "From: Ralph Schindler <ralph.schindler@zend.com>\r\n"
-            . "To: ZF DevTeam <zf-devteam@zend.com>\r\n"
+        $expectedMessage = "Date: Mon, 29 May 2017 10:23:24 +0200\r\n"
+            . "From: Foo Bar <foobar@wedeto.net>\r\n"
+            . "To: Wedeto DevTeam <wedeto@wedeto.net>\r\n"
             . "\r\n"
             . "testSendMinimalMailWithoutSender";
 
@@ -208,35 +147,20 @@ class SMTPSenderTest extends TestCase
         $message = $this->getMessage();
         $this->transport->send($message);
 
-        $expectedRecipients = ['zf-devteam@zend.com', 'matthew@zend.com', 'zf-crteam@lists.zend.com'];
+        $expectedRecipients = ['wedeto@wedeto.net', 'johndoe@wedeto.net', 'somepeople@lists.wedeto.net'];
         $this->assertEquals($expectedRecipients, $this->connection->getRecipients());
 
         $data = $this->connection->getLog();
-        $this->assertContains('MAIL FROM:<ralph.schindler@zend.com>', $data);
-        $this->assertContains('To: ZF DevTeam <zf-devteam@zend.com>', $data);
+        $this->assertContains('MAIL FROM:<foobar@wedeto.net>', $data);
+        $this->assertContains('To: Wedeto DevTeam <wedeto@wedeto.net>', $data);
         $this->assertContains('Subject: Testing Zend\Mail\Transport\Sendmail', $data);
-        $this->assertContains("Cc: matthew@zend.com\r\n", $data);
-        $this->assertNotContains("Bcc: \"CR-Team, ZF Project\" <zf-crteam@lists.zend.com>\r\n", $data);
-        $this->assertContains("From: zf-devteam@zend.com,\r\n Matthew <matthew@zend.com>\r\n", $data);
-        $this->assertContains("X-Foo-Bar: Matthew\r\n", $data);
-        $this->assertContains("Sender: Ralph Schindler <ralph.schindler@zend.com>\r\n", $data);
+        $this->assertContains("Cc: johndoe@wedeto.net\r\n", $data);
+        $this->assertContains("RCPT TO:<somepeople@lists.wedeto.net>\r\n", $data);
+        $this->assertNotContains("Bcc: \"Some Team, Wedeto Project\" <somepeople@lists.wedeto.net>\r\n", $data);
+        $this->assertContains("From: wedeto@wedeto.net,\r\n John Doe <johndoe@wedeto.net>\r\n", $data);
+        $this->assertContains("X-Foo-Bar: John Doe\r\n", $data);
+        $this->assertContains("Sender: Foo Bar <foobar@wedeto.net>\r\n", $data);
         $this->assertContains("\r\n\r\nThis is only a test.", $data, $data);
-    }
-
-    public function testCanUseAuthenticationExtensionsViaPluginManager()
-    {
-        $options    = new SmtpOptions([
-            'connection_class' => 'login',
-        ]);
-        $transport  = new Smtp($options);
-        $connection = $transport->plugin($options->getConnectionClass(), [
-            'username' => 'matthew',
-            'password' => 'password',
-            'host'     => 'localhost',
-        ]);
-        $this->assertInstanceOf('Zend\Mail\Protocol\Smtp\Auth\Login', $connection);
-        $this->assertEquals('matthew', $connection->getUsername());
-        $this->assertEquals('password', $connection->getPassword());
     }
 
     public function testSetAutoDisconnect()

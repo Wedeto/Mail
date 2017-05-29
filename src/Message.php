@@ -109,10 +109,12 @@ class Message
      * Add a header
      * @param string $name The name of the header
      * @param string $value The value of the header
+     * @return Message Provides fluent interface
      */
     public function addHeader(string $name, string $value)
     {
         $this->header->set($name, $value);
+        return $this;
     }
 
     /**

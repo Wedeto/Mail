@@ -46,26 +46,14 @@ use PHPUnit\Framework\TestCase;
  */
 class MimeTest extends TestCase
 {
-    // @codingStandardsIgnoreStart
-    /**
-     * Stores the original set timezone
-     *
-     * @var string
-     */
-    private $_originaltimezone;
-    // @codingStandardsIgnoreEnd
+    /** Stores the original set timezone */
+    protected $_originaltimezone;
 
-    /**
-     * Setup environment
-     */
     public function setUp()
     {
         $this->_originaltimezone = date_default_timezone_get();
     }
 
-    /**
-     * Tear down environment
-     */
     public function tearDown()
     {
         date_default_timezone_set($this->_originaltimezone);
@@ -80,21 +68,17 @@ class MimeTest extends TestCase
 
         // check instantiating with arbitrary boundary string
         $myBoundary = 'mySpecificBoundary';
-        $m3         = new Mime($myBoundary);
+        $m3 = new Mime($myBoundary);
         $this->assertEquals($m3->boundary(), $myBoundary);
     }
 
-    // @codingStandardsIgnoreStart
     public function testIsPrintable_notPrintable()
     {
-        // @codingStandardsIgnoreEnd
         $this->assertFalse(Mime::isPrintable('Test with special chars: �����'));
     }
 
-    // @codingStandardsIgnoreStart
     public function testIsPrintable_isPrintable()
     {
-        // @codingStandardsIgnoreEnd
         $this->assertTrue(Mime::isPrintable('Test without special chars'));
     }
 
@@ -107,24 +91,26 @@ class MimeTest extends TestCase
               . ", long, long, long, long, long, long, long, long, long, long"
               . ", long, long, long, long and with ����";
 
-        $qp = Mime::encode($text, 'Q', '', false);
-        $this->assertEquals(quoted_printable_decode($qp), $text);
+        $qp = Mime::encode($text, 'Q');
+        $this->assertEquals($text, quoted_printable_decode($qp));
+
+        $qp = Mime::encode($text, 'Q', '', Mime::LINEEND);
+        $this->assertEquals($text, mb_decode_mimeheader($qp));
     }
 
     public function testQuotedPrintableNoDotAtBeginningOfLine()
     {
-        $text = str_repeat('á', Mime::LINELENGTH / 3) . '.bbb';
-        $qp = Mime::encode($text, 'Q', '', Mime::LINEEND, false);
+        $text = str_repeat('a', Mime::LINELENGTH - 1) . '.bbb';
+        $qp = Mime::encode($text, 'Q');
 
-        $expected = str_repeat('a', Mime::LINELENGTH - 1) . "=\na.bbb";
-
+        $expected = str_repeat('a', Mime::LINELENGTH - 2) . "=\na.bbb";
         $this->assertEquals($expected, $qp);
     }
 
     public function testQuotedPrintableDoesNotBreakOctets()
     {
         $text = str_repeat('a', Mime::LINELENGTH - 3) . '=.bbb';
-        $qp = Mime::encode($text, 'Q', '', Mime::LINEEND, false);
+        $qp = Mime::encode($text, 'Q');
 
         $expected = str_repeat('a', Mime::LINELENGTH - 3) . "=\n=3D.bbb";
 
@@ -134,14 +120,14 @@ class MimeTest extends TestCase
     public function testBase64()
     {
         $content = str_repeat("\x88\xAA\xAF\xBF\x29\x88\xAA\xAF\xBF\x29\x88\xAA\xAF", 4);
-        $encoded = Mime::encode($content, 'B', '', Mime::LINEEND, false);
+        $encoded = Mime::encode($content, 'B');
         $this->assertEquals($content, base64_decode($encoded));
     }
 
     public function testZf1058WhitespaceAtEndOfBodyCausesInfiniteLoop()
     {
         $text   = "my body\r\n\r\n...after two newlines\r\n ";
-        $result = quoted_printable_decode(Mime::encode($text, 'Q', '', Mime::LINEEND, false));
+        $result = quoted_printable_decode(Mime::encode($text, 'Q'));
         $this->assertContains("my body\r\n\r\n...after two newlines", $result, $result);
     }
 
@@ -213,11 +199,9 @@ class MimeTest extends TestCase
         $subject = "Alle meine Entchen schwimmen in dem See, schwimmen in dem See, "
             . "Köpfchen in das Wasser, Schwänzchen in die Höh!";
         $encoded = Mime::encode($subject, 'Q', '', Mime::LINEEND, false);
-        foreach (explode(Mime::LINEEND, $encoded) as $line) {
-            if (strlen($line) > 76) {
-                $this->fail("Line '" . $line . "' is " . strlen($line) . " chars long, only 76 allowed.");
-            }
-        }
+
+        foreach (explode(Mime::LINEEND, $encoded) as $line)
+            $this->assertLessThanOrEqual(76, strlen($line));
     }
 
     public function dataTestCharsetDetection()
