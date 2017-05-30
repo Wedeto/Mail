@@ -49,6 +49,8 @@ class SMTPProtocolSpy extends SMTP
     protected $mail;
     protected $rcptTest = [];
 
+    protected $expect_response = '';
+
     public function connect()
     {
         $this->connect = true;
@@ -90,11 +92,19 @@ class SMTPProtocolSpy extends SMTP
     {
         // Save request to internal log
         $this->_addLog($request . self::EOL);
+        $this->request = $request;
+    }
+
+    public function setExpectResponse(string $resp)
+    {
+        $this->expect_response = $resp;
     }
 
     protected function _expect($code, int $timeout = null)
     {
-        return '';
+        $this->response = $this->expect_response;
+        $this->expect_response = '';
+        return $this->response;
     }
 
     public function isConnected()

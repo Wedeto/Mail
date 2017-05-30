@@ -49,6 +49,7 @@ require_once __DIR__ . '/SMTPProtocolSpy.php';
 
 /**
  * @covers Wedeto\Mail\Protocol\SMTP
+ * @covers Wedeto\Mail\Protocol\AbstractProtocol
  */
 class SMTPTest extends TestCase
 {
@@ -151,6 +152,259 @@ class SMTPTest extends TestCase
         );
 
         $this->assertEquals('be56fa81a5671e0c62e00134180aae2c', $result);
+    }
+
+    public function testPlainLogin()
+    {
+        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'PLAIN']);
+        $opts = $this->connection->getOptions();
+        $this->assertTrue(is_array($opts));
+        $this->assertEquals('foo', $opts['username']);
+        $this->assertEquals('loremipsum', $opts['password']);
+        $this->assertEquals('PLAIN', $opts['auth_type']);
+        
+        $this->connection->auth();
+        $log = $this->connection->getLog();
+
+        $this->assertEquals('foo', $this->connection->getUsername());
+        $this->assertEquals('loremipsum', $this->connection->getPassword());
+
+        $expected = "AUTH PLAIN\r\n" . base64_encode(chr(0) . 'foo' . chr(0) . 'loremipsum') . "\r\n";
+        $this->assertEquals($expected, $log);
+    }
+
+    public function testPlainLoginWithoutAuthType()
+    {
+        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum']);
+        $opts = $this->connection->getOptions();
+        $this->assertTrue(is_array($opts));
+        $this->assertEquals('foo', $opts['username']);
+        $this->assertEquals('loremipsum', $opts['password']);
+        $this->assertEquals('PLAIN', $opts['auth_type']);
+        
+        $this->connection->auth();
+        $log = $this->connection->getLog();
+
+        $this->assertEquals('foo', $this->connection->getUsername());
+        $this->assertEquals('loremipsum', $this->connection->getPassword());
+
+        $expected = "AUTH PLAIN\r\n" . base64_encode(chr(0) . 'foo' . chr(0) . 'loremipsum') . "\r\n";
+        $this->assertEquals($expected, $log);
+    }
+
+    public function testLoginLogin()
+    {
+        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'LOGIN']);
+        $opts = $this->connection->getOptions();
+        $this->assertTrue(is_array($opts));
+        $this->assertEquals('foo', $opts['username']);
+        $this->assertEquals('loremipsum', $opts['password']);
+        $this->assertEquals('LOGIN', $opts['auth_type']);
+        
+        $this->connection->auth();
+        $log = $this->connection->getLog();
+
+        $this->assertEquals('foo', $this->connection->getUsername());
+        $this->assertEquals('loremipsum', $this->connection->getPassword());
+
+        $expected = "AUTH LOGIN\r\n" . base64_encode('foo') . "\r\n" . base64_encode('loremipsum') . "\r\n";
+        $this->assertEquals($expected, $log);
+    }
+
+    public function testCRAMMD5Login()
+    {
+        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'CRAM-MD5']);
+        $opts = $this->connection->getOptions();
+        $this->assertTrue(is_array($opts));
+        $this->assertEquals('foo', $opts['username']);
+        $this->assertEquals('loremipsum', $opts['password']);
+        $this->assertEquals('CRAM-MD5', $opts['auth_type']);
+        
+        $challenge = 'challenge';
+        $this->connection->setExpectResponse(base64_encode($challenge));
+        $this->connection->auth();
+        $log = $this->connection->getLog();
+
+        $this->assertEquals('foo', $this->connection->getUsername());
+        $this->assertEquals('loremipsum', $this->connection->getPassword());
+
+        $class = new ReflectionClass(SMTP::class);
+        $method = $class->getMethod('hmacMD5');
+        $method->setAccessible(true);
+        $digest = $method->invokeArgs(
+            $this->connection,
+            ['loremipsum', $challenge]
+        );
+
+        $expected = "AUTH CRAM-MD5\r\n" . base64_encode('foo ' . $digest) . "\r\n";
+        $this->assertEquals($expected, $log);
+    }
+
+    public function testReset()
+    {
+        $this->connection->rset();
+        $log = $this->connection->getLog();
+
+        $this->assertEquals('RSET' . "\r\n", $log);
+    }
+
+    public function testMailBeforeConnectError()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('A valid session has not been started');
+        $this->connection->mail('info@wedeto.net');
+    }
+
+    public function testRcptBeforeMailError()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('No sender reverse path has been supplied');
+        $this->connection->rcpt('info@wedeto.net');
+    }
+
+    public function testValidateSSLOptions()
+    {
+        $this->connection->setOptions(['ssl' => 'ssl', 'port' => '466']);
+        $opts = $this->connection->getOptions();
+        $this->assertEquals(466, $opts['port']);
+        $this->assertEquals('ssl', $this->connection->getSecure());
+        $this->assertEquals('ssl', $this->connection->getTransport());
+
+        $this->connection->setOptions(['ssl' => 'ssl']);
+        $opts = $this->connection->getOptions();
+        $this->assertEquals(465, $opts['port']);
+        $this->assertEquals('ssl', $this->connection->getSecure());
+        $this->assertEquals('ssl', $this->connection->getTransport());
+
+        $this->connection->setOptions(['ssl' => 'tls', 'port' => '466']);
+        $opts = $this->connection->getOptions();
+        $this->assertEquals(466, $opts['port']);
+        $this->assertEquals('tls', $this->connection->getSecure());
+        $this->assertEquals('tcp', $this->connection->getTransport());
+
+        $this->connection->setOptions(['ssl' => 'tls']);
+        $opts = $this->connection->getOptions();
+        $this->assertEquals('tls', $this->connection->getSecure());
+        $this->assertEquals('tcp', $this->connection->getTransport());
+    }
+
+    public function testInvalidHostname()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid hostname');
+        $this->connection->setOptions(['host' => 3]);
+    }
+
+    public function testInvalidAuthTypeInt()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid authentication type');
+        $this->connection->setOptions(['auth_type' => 3]);
+    }
+
+    public function testInvalidAuthType()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid authentication type: "FOO"');
+        $this->connection->setOptions(['auth_type' => 'foo']);
+    }
+
+    public function testSetAuthTypeWithoutUsername()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Authentication requires username and password');
+        $this->connection->setOptions(['auth_type' => 'login']);
+    }
+
+    public function testSetAuthTypeWithoutPassword()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Authentication requires username and password');
+        $this->connection->setOptions(['auth_type' => 'login', 'username' => 'foo']);
+    }
+
+    public function testSetNonStringSSL()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid SSL type');
+        $this->connection->setOptions(['ssl' => 1]);
+    }
+
+    public function testSetSSLWithInvalidString()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid SSL type: foo');
+        $this->connection->setOptions(['ssl' => 'foo']);
+    }
+
+    public function testSetInvalidHELOType()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid HELO specified');
+        $this->connection->setOptions(['helo' => 3]);
+    }
+
+    public function testSetInvalidHELOHost()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Unresolvable HELO specified');
+        $this->connection->setOptions(['helo' => 'this.host.should.hopefully.not.exist.top.level.wedeto']);
+    }
+
+    public function testSetInvalidServerHost()
+    {
+        $this->expectException(ProtocolException::class);
+        $this->expectExceptionMessage('Invalid SMTP server host');
+        $this->connection->setOptions(['host' => 'this.host.should.hopefully.not.exist.top.level.wedeto']);
+    }
+
+    public function testGetHostAndPort()
+    {
+        $this->connection->setOptions(['host' => 'wedeto.net', 'port' => 123]);
+        $this->assertEquals(123, $this->connection->getPort());
+        $this->assertEquals('wedeto.net', $this->connection->getHost());
+    }
+
+    public function testSetAndGetLogSize()
+    {
+        $this->assertSame($this->connection, $this->connection->setMaximumLog(5));
+        $this->assertEquals(5, $this->connection->getMaximumLog());
+
+        for ($i = 0; $i < 10; ++$i)
+            $this->connection->rset();
+
+        $log = $this->connection->getLog();
+        $expected = str_repeat("RSET\r\n", 5);
+        $this->assertEquals($expected, $log);
+
+        $this->assertSame($this->connection, $this->connection->setMaximumLog(7));
+        $this->assertEquals(7, $this->connection->getMaximumLog());
+
+        for ($i = 0; $i < 10; ++$i)
+            $this->connection->rset();
+
+        $log = $this->connection->getLog();
+        $expected = str_repeat("RSET\r\n", 7);
+        $this->assertEquals($expected, $log);
+    }
+
+    public function testGetRequestAndResponse()
+    {
+        $this->connection->setExpectResponse('loremipsum');
+        $this->connection->rset();
+
+        $this->assertEquals('RSET', $this->connection->getRequest());
+        $this->assertEquals('loremipsum', $this->connection->getResponse());
+
+        $log = $this->connection->getLog();
+        $this->assertEquals("RSET\r\n", $log);
+
+        $log = $this->connection->getLog();
+        $this->assertEquals("RSET\r\n", $log);
+
+        $log = $this->connection->resetLog();
+        $log = $this->connection->getLog();
+        $this->assertEmpty($log);
     }
 }
 

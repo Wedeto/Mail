@@ -88,8 +88,20 @@ class SMTP extends AbstractProtocol
      */
     public function __construct(array $config = array())
     {
+        $this->setOptions($config);
+    }
+
+    /**
+     * Set options for the SMTP connection
+     * @param array $config The options to set
+     * @return SMTP Provides fluent interface
+     */
+    public function setOptions(array $config)
+    {
         $config = $this->validateOptions($config);
 
+        $this->disconnect();
+        $this->transport = 'tcp';
         if (isset($config['ssl']))
         {
             $ssl = $config['ssl'];
@@ -100,37 +112,16 @@ class SMTP extends AbstractProtocol
                     break;
                 case 'ssl':
                     $this->transport = $this->secure = 'ssl';
-                    if ($port === null)
-                        $port = 465;
                     break;
             }
         }
-
-        // If no port has been specified then check the master PHP ini file. Defaults to 25 if the ini setting is null.
-        if (empty($port))
-            $port = 25;
 
         if (isset($config['username']))
             $this->setUsername($config['username']);
         if (isset($config['password']))
             $this->setPassword($config['password']);
 
-        parent::__construct($config);
-    }
-
-    /**
-     * Set optiions for the SMTP connection
-     * @param array $config The options to set
-     * @return SMTP Provides fluent interface
-     */
-    public function setOptions(array $config)
-    {
-        $this->disconnect();
-        $config = $this->validateOptions($config);
-        $this->config = $config;
-        $this->host = $config['host'];
-        $this->port = $config['port'];
-        return $this;
+        parent::setOptions($config);
     }
 
     /**
@@ -165,8 +156,8 @@ class SMTP extends AbstractProtocol
                 throw new ProtocolException("Invalid authentication type");
 
             $tp = strtoupper($options['auth_type']);
-            if (!in_array($options['auth_type'], array('PLAIN', 'LOGIN', 'CRAM-MD5'), true))
-                throw new ProtocolExeption('Invalid authentication type: ' . $tp);
+            if (!in_array($tp, ['PLAIN', 'LOGIN', 'CRAM-MD5'], true))
+                throw new ProtocolException('Invalid authentication type: "' . $tp . '"');
             $options['auth_type'] = $tp;
 
             if (empty($options['username']) || empty($options['password']))
@@ -187,18 +178,17 @@ class SMTP extends AbstractProtocol
         if (!empty($options['helo']) && !is_string($options['helo']))
             throw new ProtocolException('Invalid HELO specified');
 
-        if (!isset($options['helo']))
-            $options['helo'] = 'localhost';
-
+        $helo = $options['helo'] ?? 'localhost';
         { // Validate HELO identification
-            $f = filter_var($options['helo'], FILTER_VALIDATE_IP);
+            $f = filter_var($helo, FILTER_VALIDATE_IP);
             if ($f === false)
             {
-                $resolved = gethostbyname($f);
-                if ($resolved === $f)
-                    throw new ProtocolException('Unresolvable HELO specified: ' . $options['helo']);
+                $resolved = gethostbyname($helo);
+                if ($resolved === $helo)
+                    throw new ProtocolException('Unresolvable HELO specified: ' . $helo);
             }
         }
+        $options['helo'] = $helo;
 
         if (empty($options['port']))
         {
@@ -537,6 +527,22 @@ class SMTP extends AbstractProtocol
     public function getPassword()
     {
         return $this->password;
+    }
+
+    /**
+     * @return string The encryption type
+     */
+    public function getSecure()
+    {
+        return $this->secure;
+    }
+
+    /**
+     * @return string The transport type
+     */
+    public function getTransport()
+    {
+        return $this->transport;
     }
 
     /**

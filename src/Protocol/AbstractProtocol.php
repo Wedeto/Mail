@@ -90,6 +90,11 @@ abstract class AbstractProtocol
      */
     public function __construct(array $config = [])
     {
+        $this->setOptions($config);
+    }
+
+    public function setOptions(array $config)
+    {
         $host = $config['host'] ?? 'localhost';
         $port = $config['port'] ?? 25;
 
@@ -116,10 +121,12 @@ abstract class AbstractProtocol
      * Set the maximum log size
      *
      * @param int $maximumLog Maximum log size
+     * @return AbstractProtocol Provides fluent interface
      */
     public function setMaximumLog($maximumLog)
     {
         $this->maximumLog = (int)$maximumLog;
+        return $this;
     }
 
     /**
@@ -332,5 +339,21 @@ abstract class AbstractProtocol
             throw new ProtocolException($errMsg);
 
         return $msg;
+    }
+
+    /**
+     * @return int The port to connect to
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * @return string The host to connect to
+     */
+    public function getHost()
+    {
+        return $this->host;
     }
 }
