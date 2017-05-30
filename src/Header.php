@@ -85,6 +85,9 @@ class Header implements Iterator
      */
     public function get(string $name, string $format = Header::FORMAT_RAW)
     {
+		if (!in_array($format, [Header::FORMAT_RAW, Header::FORMAT_ENCODED]))
+			throw new \InvalidArgumentException("Invalid format: " . $format);
+
         $name = self::normalizeHeader($name);
         if (!isset($this->header_fields[$name]))
             return null;
@@ -92,9 +95,6 @@ class Header implements Iterator
 		$value = $this->header_fields[$name];
 		if ($format === Header::FORMAT_RAW)
 			return $value;
-
-		if ($format !== Header::FORMAT_ENCODED)
-			throw new \InvalidArgumentException("Invalid format: " . $format);
 
 		switch ($name)
 		{
@@ -320,10 +320,7 @@ class Header implements Iterator
         if ($structured || $address)
             throw new \LogicException("setHeader should not be reachable with structured or address headers");
 
-        if (empty($value))
-            unset($this->header_fields[$name]);
-        else
-            $this->header_fields[$name] = $value;
+        $this->header_fields[$name] = $value;
         return $this;
 	}
 
@@ -373,7 +370,7 @@ class Header implements Iterator
         return $key === "Content-Type" ?
                 $this->getContentType(Header::FORMAT_ENCODED)
             :
-                $this->getHeader($key, Header::FORMAT_RAW);
+                $this->get($key, Header::FORMAT_RAW);
     }
 
     /**

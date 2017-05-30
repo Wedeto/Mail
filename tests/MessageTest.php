@@ -44,6 +44,7 @@ use stdClass;
 
 /**
  * @covers Wedeto\Mail\Message
+ * @covers Wedeto\Mail\Header
  */
 class MessageTest extends TestCase
 {

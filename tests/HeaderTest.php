@@ -86,7 +86,7 @@ class HeaderTest extends TestCase
      */
     public function testCanBeEncoded()
     {
-        $value   = "[#77675] New Issue:xxxxxxxxx xxxxxxx xxxxxxxx xxxxxxxxxxxxx xxxxxxxxxx xxxxxxxx, tähtaeg xx.xx, xxxx";
+        $value = "[#77675] New Issue:xxxxxxxxx xxxxxxx xxxxxxxx xxxxxxxxxxxxx xxxxxxxxxx xxxxxxxx, tähtaeg xx.xx, xxxx";
         $res = Header::canBeEncoded($value);
         $this->assertTrue($res);
 
@@ -98,5 +98,183 @@ class HeaderTest extends TestCase
         if ($res)
             var_Dump(Header::wrap($value));
         $this->assertFalse($res);
+    }
+
+    public function testInvalidGetFormat()
+    {
+        $test = new Header;
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid format');
+
+        var_dump($test->get('Date', 'FOO'));
+    }
+
+    public function testGetInvalidAddress()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Header name is not an address header: Myaddress');
+    
+        $header = new Header;
+        $header->getAddress('MyAddress');
+    }
+
+    public function testUnsettingOfValues()
+    {
+        $dt = "Mon, 29 May 2017 10:23:24 +0200";
+        $header = new Header;
+        $header->set('Date', $dt);
+
+        $this->assertEquals('Date: ' . $dt, $header->get('Date', Header::FORMAT_ENCODED));
+
+        $header->set('Date', null);
+        $this->assertEquals(null, $header->get('Date'));
+    }
+
+    public function testSettingAddress()
+    {
+        $address = ['info@wedeto.net' => 'Wedeto Team'];
+        $header = new Header;
+        $header->set('Sender', $address);
+
+        $address2 = $header->get('Sender');
+        $this->assertTrue(is_array($address2));
+        $this->assertEquals(1, count($address2));
+
+        $first = reset($address2);
+        $this->assertInstanceOf(Address::class, $first);
+        $this->assertEquals('info@wedeto.net', $first->getEmail());
+    }
+
+    public function testAddInvalidAddressField()
+    {
+        $header = new Header;
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Header name is not an address header');
+        $header->addAddress('Myaddress', 'info@wedeto.net');
+    }
+
+    public function testAddMultipleSendersThrowsException()
+    {
+        $header = new Header;
+        $header->addAddress('Sender', 'info@wedeto.net');
+
+        $this->expectException(MailException::class);
+        $this->expectExceptionMessage('Only one Sender can be set');
+        $header->addAddress('Sender', 'info2@wedeto.net');
+    }
+
+    public function testSetGetContentType()
+    {
+        $header = new Header;
+
+        $header->set('Content-type', 'image/png; resolution=450x250');
+        
+        $this->assertEquals([
+            'type' => 'image/png',
+            'parameters' => ['resolution' => '450x250']
+        ], $header->getContentType(Header::FORMAT_RAW));
+
+        $this->assertEquals(
+            "Content-Type: image/png;\r\n resolution=\"450x250\"",
+            $header->getContentType(Header::FORMAT_ENCODED)
+        );
+    }
+
+    public function testSetDate()
+    {
+        $dt = new \DateTime();
+        $idt = new \DateTimeImmutable();
+        $cal = \IntlCalendar::fromDateTime($dt);
+
+        $header = new Header;
+        $header->setDate($dt);
+        $this->assertEquals(
+            'Date: ' . $dt->format('r'),
+            $header->get('Date', Header::FORMAT_ENCODED)
+        );
+
+        $header->setDate($idt);
+        $this->assertEquals(
+            'Date: ' . $dt->format('r'),
+            $header->get('Date', Header::FORMAT_ENCODED)
+        );
+
+        $header->setDate($cal);
+        $this->assertEquals(
+            'Date: ' . $dt->format('r'),
+            $header->get('Date', Header::FORMAT_ENCODED)
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Date must be DateTime, IntlCalendar, date string or valid Unix timestamp");
+        $header->setDate(new \StdClass);
+    }
+
+    public function testToString()
+    {
+        $dt = new \DateTime;
+        $header = new Header;
+        $header->setDate($dt);
+        $header->set('Subject', 'foo');
+
+        $str = $header->toString();
+        $this->assertEquals($str, (string)$header);
+        $this->assertEquals('Date: ' . $dt->format('r') . "\r\nSubject: foo\r\n", $str);
+
+        // Bcc should be ignored
+        $header->set('Bcc', 'wedeto@wedeto.net');
+        $str = $header->toString();
+        $this->assertEquals($str, (string)$header);
+        $this->assertEquals('Date: ' . $dt->format('r') . "\r\nSubject: foo\r\n", $str);
+
+        // Cc should be Added
+        $header->set('Cc', 'wedeto@wedeto.net');
+        $str = $header->toString();
+        $this->assertEquals($str, (string)$header);
+        $this->assertEquals('Date: ' . $dt->format('r') . "\r\nSubject: foo\r\nCc: wedeto@wedeto.net\r\n", $str);
+    }
+
+    public function testIteratorInterface()
+    {
+        $dt = new \DateTime;
+        $header = new Header;
+        $header->setDate($dt);
+        $header->set('Subject', 'foo');
+        $header->set('Bcc', 'bcc-wedeto@wedeto.net');
+        $header->set('Cc', 'cc-wedeto@wedeto.net');
+        $header->set('Content-Type', 'text/plain; charset=utf-8');
+
+        $keys = [];
+        $values = [];
+        $cc = null;
+        $bcc = null;
+        foreach ($header as $k => $v)
+        {
+            $keys[] = $k;
+            $values[] = $v;
+            if ($k === 'Bcc')
+                $bcc = $v;
+            elseif ($k === 'Cc')
+                $cc = $v;
+        }
+
+        $this->assertContains('Date', $keys);
+        $this->assertContains($dt, $values);
+
+        $this->assertContains('Cc', $keys);
+        $this->assertEquals(1, count($cc));
+        $first = reset($cc);
+        $this->assertEquals('cc-wedeto@wedeto.net', $first->getEmail());
+
+        $this->assertContains('Bcc', $keys);
+        $this->assertEquals(1, count($bcc));
+        $first = reset($bcc);
+        $this->assertEquals('bcc-wedeto@wedeto.net', $first->getEmail());
+
+        $this->assertContains('Subject', $keys);
+        $this->assertContains('foo', $values);
+
+        $this->assertContains('Content-Type', $keys);
+        $this->assertContains("Content-Type: text/plain;\r\n charset=\"utf-8\"", $values);
     }
 }
