@@ -1,7 +1,8 @@
 # Wedeto\Mail
 
-Mail is a class to send mails using a SMTP server. It was derived from Zend\Mail, which is the reason
-it is published using the New BSD license rather than MIT, like the rest of Wedeto.
+Mail is a class to send mails using a SMTP server. It was derived from
+Zend\Mail, which is the reason it is published using the New BSD license rather
+than MIT, like the rest of Wedeto.
 
 ## Features
 
@@ -35,8 +36,8 @@ should not be used at all, as it's highly inefficient and inflexible.
 
 Wedeto\Mail does not support to create a Wedeto\Mail\Message from an existing mail
 message. Because all POP and IMAP support has been stripped this is no longer
-necessary. This allowed to strip down the complex header parsing situation so store
-headers in a simply array rather than a complex structure of seperate header classes.
+necessary. This allowed to strip down the complex header parsing situation and
+store the header in a simpler structure.
 
 A new class was added, Wedeto\Mail\HTMLMessage. This eases the construction of messages containing a
 HTML part, a text part, attachments and embedded images, to create a structure like:
@@ -54,7 +55,7 @@ HTML part, a text part, attachments and embedded images, to create a structure l
 
 ## Usage
 
-There's a transport, Wedeto\Mail\SMTPMailer. It can be created without any
+There's one transport, Wedeto\Mail\SMTPMailer. It can be created without any
 argument, in which case it defaults to connecting to localhost on port 25. You
 can specify the following options:
 
