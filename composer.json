@@ -21,15 +21,5 @@
             "name": "Egbert van der Wal",
             "email": "wedeto@pointpro.nl"
         }
-    ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/Wedeto/Util"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/Wedeto/IO"
-        }
     ]
 }
