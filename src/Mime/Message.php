@@ -55,7 +55,7 @@ class Message implements PartInterface
     protected $mime = null;
 
     /** The content type */
-    protected $typpe = Mime::MULTIPART_MIXED;
+    protected $type = Mime::MULTIPART_MIXED;
 
     /**
      * Set content type of the Mime message. Only used when the message is
@@ -105,6 +105,7 @@ class Message implements PartInterface
      *
      * @param \Wedeto\Mail\Mime\PartInterface $part
      * @throws Exception\InvalidArgumentException
+     * @return Message Provides fluent interface
      */
     public function addPart(PartInterface $part)
     {
@@ -120,6 +121,7 @@ class Message implements PartInterface
         }
 
         $this->parts[] = $part;
+        return $this;
     }
 
     /**

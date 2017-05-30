@@ -293,12 +293,10 @@ class Part implements PartInterface
                 is_object($content) ? get_class($content) : gettype($content)
             ));
         }
+
         $this->content = $content;
-        if (is_resource($content))
-        {
-            $this->isStream = true;
-            $this->setEncoding(Mime::ENCODING_BASE64);
-        }
+        $this->isStream = is_resource($content);
+        $this->setEncoding($this->isStream ? Mime::ENCODING_BASE64 : Mime::ENCODING_8BIT);
 
         return $this;
     }
@@ -377,7 +375,11 @@ class Part implements PartInterface
 
                 $this->filters[Mime::ENCODING_QUOTEDPRINTABLE] = $filter;
                 if (!is_resource($filter))
+                {
+                    // @codeCoverageIgnoreStart
                     throw new MailException('Failed to append quoted-printable filter');
+                    // @codeCoverageIgnoreEnd
+                }
                 break;
             case Mime::ENCODING_BASE64:
                 if (array_key_exists(Mime::ENCODING_BASE64, $this->filters))
@@ -394,9 +396,12 @@ class Part implements PartInterface
                 );
                 $this->filters[Mime::ENCODING_BASE64] = $filter;
                 if (!is_resource($filter))
+                {
+                    // @codeCoverageIgnoreStart
                     throw new MailException('Failed to append base64 filter');
+                    // @codeCoverageIgnoreEnd
+                }
                 break;
-            default:
         }
         return $this->content;
     }

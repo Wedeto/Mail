@@ -42,6 +42,7 @@ namespace Wedeto\Mail\Mime;
 use PHPUnit\Framework\TestCase;
 
 use InvalidArgumentException;
+use Wedeto\Mail\MailException;
 
 /**
  * @covers Wedeto\Mail\Mime\Part
@@ -61,7 +62,7 @@ class PartTest extends TestCase
         $this->part = new Part($this->testText);
         $this->part->setEncoding(Mime::ENCODING_BASE64);
         $this->part->setType("text/plain");
-        $this->part->setFilename('test.txt');
+        $this->part->setFileName('test.txt');
         $this->part->setDisposition(Mime::DISPOSITION_ATTACHMENT);
         $this->part->setCharset('iso8859-1');
         $this->part->setID('4711');
@@ -159,7 +160,7 @@ class PartTest extends TestCase
         $part->setContent($this->testText)
              ->setEncoding(Mime::ENCODING_8BIT)
              ->setType('text/plain')
-             ->setFilename('test.txt')
+             ->setFileName('test.txt')
              ->setDisposition('attachment')
              ->setCharset('iso8859-1')
              ->setID('4711')
@@ -217,5 +218,101 @@ class PartTest extends TestCase
         $part = new Part();
         $this->expectException(InvalidArgumentException::class);
         $part->setContent($content);
+    }
+
+    public function testGenerateID()
+    {
+        $part = new Part();
+        $file = $part->setFileName('foo');
+
+        $ids = [];
+        for ($i = 0; $i < 100; ++$i)
+        {
+            $id = $part->generateID();
+            $this->assertEquals(strlen('foo') + 8, strlen($id), "Unexpected ID generated");
+            $this->assertFalse(isset($ids[$id]), "A non-unique ID was generated");
+        }
+    }
+
+    public function testEncodeStringStream()
+    {
+        $part = new Part();
+        $part->setContent('foo');
+
+        $this->assertFalse($part->isStream());
+        $this->assertEquals(Mime::ENCODING_8BIT, $part->getEncoding());
+        
+        $thrown = false;
+        try
+        {
+            $part->getEncodedStream();
+        }
+        catch (MailException $e)
+        {
+            $this->assertContains('Attempt to get a stream from a string', $e->getMessage());
+            $thrown = true;
+        }
+
+        $this->assertTrue($thrown);
+
+        $str = fopen('php://memory', 'rw');
+        fwrite($str, 'foobar');
+        rewind($str);
+
+        $part->setContent($str);
+        $this->assertTrue($part->isStream());
+        $this->assertEquals(Mime::ENCODING_BASE64, $part->getEncoding());
+
+        $this->assertEquals('foobar', $part->getRawContent());
+    }
+
+    public function testGetHeaderArray()
+    {
+        $part = new Part();
+        $this->assertSame($part, $part->setContent('foobar'));
+        $this->assertSame($part, $part->setDisposition(Mime::DISPOSITION_ATTACHMENT));
+        $this->assertSame($part, $part->setType(Mime::TYPE_TEXT));
+        $this->assertSame($part, $part->setFileName('foobarfile'));
+        $this->assertSame($part, $part->setBoundary('foobarbound'));
+        $this->assertSame($part, $part->setDescription('a foo barred the baz'));
+        $this->assertSame($part, $part->setLocation('http://www.wedeto.net'));
+        $this->assertSame($part, $part->setLanguage('en'));
+;
+        $header = $part->getHeadersArray();
+        $this->assertTrue(is_array($header));
+        $this->assertEquals(6, count($header));
+        $this->assertContains(['Content-Type', "text/plain;\n boundary=\"foobarbound\""], $header);
+        $this->assertContains(['Content-Transfer-Encoding', '8bit'], $header);
+        $this->assertContains(['Content-Disposition', "attachment; filename=\"foobarfile\""], $header);
+        $this->assertContains(['Content-Description', "a foo barred the baz"], $header);
+        $this->assertContains(['Content-Location', "http://www.wedeto.net"], $header);
+        $this->assertContains(['Content-Language', "en"], $header);
+
+        $this->assertSame($part, $part->setDisposition(''));
+        $thrown = false;
+        try
+        {
+            $part->getHeadersArray();
+        }
+        catch (MailException $e)
+        {
+            $this->assertContains('You should provide a disposition', $e->getMessage());
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        $this->assertSame($part, $part->setDisposition(Mime::DISPOSITION_ATTACHMENT));
+        $this->assertSame($part, $part->setFileName(''));
+        try
+        {
+            $part->getHeadersArray();
+        }
+        catch (MailException $e)
+        {
+            $this->assertContains('You should provide a filename', $e->getMessage());
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
     }
 }

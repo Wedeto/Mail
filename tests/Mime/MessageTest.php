@@ -130,8 +130,97 @@ class MessageTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $message = new Message();
-        $part    = new Part('This is a test');
+        $part = new Part('This is a test');
         $message->addPart($part);
         $message->addPart($part);
+    }
+
+    public function testSetAndGetType()
+    {
+        $message = new Message();
+
+        $part = new Part('This is a test');
+        $message->addPart($part);
+
+        $part2 = new Part('This is another test');
+        $message->addPart($part2);
+
+        $this->assertEquals(Mime::MULTIPART_MIXED, $message->getType());
+        $this->assertSame($message, $message->setType(Mime::MULTIPART_ALTERNATIVE));
+        $this->assertEquals(Mime::MULTIPART_ALTERNATIVE, $message->getType());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("A mime message should be multipart/");
+        $message->setType('image/png');
+    }
+
+    public function testAddAndRemovePart()
+    {
+        $message = new Message();
+        $part = new Part('This is a test');
+
+        $this->assertSame($message, $message->addPart($part));
+        $this->assertFalse($message->isMultiPart());
+
+        $parts = $message->getParts();
+        $this->assertEquals(1, count($parts));
+        $this->assertSame($part, reset($parts));
+
+        $this->assertTrue($message->removePart($part), "Removing part for the first time should return true");
+        $this->assertFalse($message->removePart($part), "Removing part for the second time should return false");
+    }
+
+    public function testGetHeadersArray()
+    {
+        $message = new Message();
+        $part = new Part('This is a test');
+        $part->setDisposition(Mime::DISPOSITION_INLINE);
+        $part->setType(Mime::TYPE_TEXT);
+
+        $this->assertSame($message, $message->addPart($part));
+
+        $this->assertEquals(1, count($message->getParts()));
+        $header = $message->getPartHeadersArray(0);
+
+        $this->assertEquals(3, count($header));
+        $this->assertContains(['Content-Type', 'text/plain'], $header);
+        $this->assertContains(['Content-Transfer-Encoding', '8bit'], $header);
+        $this->assertContains(['Content-Disposition', 'inline'], $header);
+    }
+
+    public function testPartInterface()
+    {
+        $message = new Message();
+        $part = new Part('This is a test');
+        $part->setDisposition(Mime::DISPOSITION_INLINE);
+        $part->setType(Mime::TYPE_TEXT);
+
+        $this->assertSame($message, $message->addPart($part));
+        $this->assertEquals(1, count($message->getParts()));
+
+        $content = $message->getContent();
+        $this->assertEquals('This is a test', $content);
+
+        $mime = $message->getMime();
+
+        $header = $message->getHeadersArray();
+        $this->assertInstanceOf(Mime::class, $mime);
+        $this->assertTrue(is_array($header));
+        $this->assertEquals(1, count($header));
+        $this->assertContains(['Content-Type', "multipart/mixed;\n boundary=\"" . $mime->boundary() . "\""], $header);
+
+        $header = $message->getHeadersArray("\r\n");
+        $this->assertInstanceOf(Mime::class, $mime);
+        $this->assertTrue(is_array($header));
+        $this->assertEquals(1, count($header));
+        $this->assertContains(['Content-Type', "multipart/mixed;\r\n boundary=\"" . $mime->boundary() . "\""], $header);
+
+        $header = $message->getHeaders();
+        $expected = "Content-Type: multipart/mixed;\n boundary=\"" . $mime->boundary() . "\"\n";
+        $this->assertEquals($expected, $header);
+
+        $header = $message->getHeaders("\r\n");
+        $expected = "Content-Type: multipart/mixed;\r\n boundary=\"" . $mime->boundary() . "\"\r\n";
+        $this->assertEquals($expected, $header);
     }
 }
