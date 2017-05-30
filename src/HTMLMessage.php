@@ -63,8 +63,9 @@ class HTMLMessage extends Message
     public function setContentType(string $type)
     {
         $mime = $this->body->getMime();
-        $header = $type . ';' . self::EOL . ' boundary="' . $mime->boundary() . '"';
+        $header = $type . ';' . Header::EOL . ' boundary="' . $mime->boundary() . '"';
         $this->addHeader('Content-Type', $header);
+        $this->body->setType($type);
         return $this;
     }
 
@@ -119,16 +120,16 @@ class HTMLMessage extends Message
             //  - message -> multipart/alternative 
             //  - attachments
             $this->message_wrapper = new Mime\Message;
-            $this->message_wrapper->setType(Mime\Mime::MULTIPART_ALTERNATIVE);
-            $this->setContentType(Mime\Mime::MULTIPART_RELATED);
             $this->message_wrapper->addPart($this->message);
+
+            $this->setBody($this->message_wrapper);
+            $this->setContentType(Mime\Mime::MULTIPART_MIXED);
+            $this->message->setType(Mime\Mime::MULTIPART_ALTERNATIVE);
         }
 
-        $attachment = new Mime\Attachment($filename, $resource);
-        $this->message_wrapper->addPart($attachment);
-
-        $this->setBody($this->message_wrapper);
-        return $this;
+        $attachment = new Mime\Attachment($filename, $resource, $mime);
+        $this->body->addPart($attachment);
+        return $attachment;
     }
 
     /**
@@ -160,7 +161,7 @@ class HTMLMessage extends Message
             $this->message->addPart($this->html_message);
         }
 
-        $attachment = new Mime\Attachment($filename);
+        $attachment = new Mime\Attachment($filename, $resource, $mime);
         $attachment->setDisposition(Mime\Mime::DISPOSITION_INLINE);
         $attachment->generateId();
         $this->html_message->addPart($attachment);

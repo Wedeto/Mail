@@ -136,6 +136,9 @@ class Message implements PartInterface
             if ($cpart === $part)
             {
                 unset($this->parts[$key]);
+
+                // Renumber elements
+                $this->parts = array_values($this->parts);
                 return true;
             }
         }
@@ -212,7 +215,7 @@ class Message implements PartInterface
             $mime = $this->getMime();
 
             $boundaryLine = $mime->boundaryLine($EOL);
-            $body = 'This is a message in Mime Format.  If you see this, '
+            $body = 'This is a message in Mime Format. If you see this, '
                   . "your mail reader does not support this format." . $EOL;
 
             foreach (array_keys($this->parts) as $p)
