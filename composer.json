@@ -9,7 +9,7 @@
         "ext-mbstring": "*"
     },
     "suggest": {
-        "ext-idn": "Needed to support validation of IDN domain names"
+        "ext-intl": "Needed to support validation of IDN domain names"
     },
     "autoload": {
         "psr-4": {
