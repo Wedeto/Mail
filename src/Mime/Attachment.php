@@ -29,7 +29,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Mime;
 
-use Wedeto\IO\MimeTypes;
+use Wedeto\IO\FileType;
 use Wedeto\IO\IOException;
 use Wedeto\Mail\Mime\Mime;
 
@@ -55,15 +55,8 @@ class Attachment extends Part
         $basename = basename($filename);
         if (empty($mime))
         {
-            if (is_readable($filename))
-            {
-                $mime = MimeTypes::getFromFile($filename);
-            }
-            else
-            {
-                $detect = MimeTypes::extractFromPath($filename);
-                $mime = $detect[0] ?? null;
-            }
+            $type = FileType::getFromFile($filename);
+            $mime = $type->getMimeType();
         }
 
         // Still empty Mime? Use a generic type
