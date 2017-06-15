@@ -16,6 +16,9 @@
             "Wedeto\\Mail\\": "src/"
         }
     },
+    "archive": {
+        "exclude": ["/tests","/phpunit.xml"]
+    },
     "authors": [
         {
             "name": "Egbert van der Wal",
