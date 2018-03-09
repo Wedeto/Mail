@@ -67,7 +67,7 @@ class MessageTest extends TestCase
         $this->assertInstanceOf(Header::class, $header);
         $this->assertTrue($header->has('Date'));
 
-        $date = date('r');
+        $date = gmdate('r');
         $date = substr($date, 0, 16);
         $test = $header->get('Date', Header::FORMAT_ENCODED);
         $test = substr($test, 6, 16);
@@ -669,7 +669,7 @@ class MessageTest extends TestCase
         $this->message->setEncoding('utf-8');
         $header = $this->message->getHeader();
 
-        $date = date('r');
+        $date = gmdate('r');
         $date = substr($date, 0, 16);
         $test = $header->get('Date', Header::FORMAT_ENCODED);
         $test = substr($test, 6, 16);
