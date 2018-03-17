@@ -4,7 +4,7 @@ This is part of Wedeto, the WEb DEvelopment TOolkit.
 Wedeto\Mail is published under the BSD 3-Clause License.
 
 Wedeto\Mail\SMTPSender was adapted from Zend\Mail\Transport\SMTP.
-The modifications are: Copyright 2017, Egbert van der Wal.
+The modifications are: Copyright 2017-2018, Egbert van der Wal.
 
 The original source code is copyright Zend Technologies USA Inc. The original
 licence information is included below.
@@ -47,12 +47,19 @@ use Wedeto\Mail\Message;
 use Wedeto\Mail\Protocol;
 use Wedeto\Mail\MailException;
 
+use Wedeto\Util\DI\InjectionTrait;
+
 /**
  * SMTP message sender. Used the SMTP protocol implementation to transmit the
  * message.
  */
 class SMTPSender
 {
+    use InjectionTrait;
+
+    /** Can/should be used as singleton */
+    const WDI_REUSABLE = true;
+
     /** SMTP sending options */
     protected $options;
 
@@ -67,9 +74,9 @@ class SMTPSender
      *
      * @param array $options The configuration parameters
      */
-    public function __construct(array $options = array())
+    public function __construct(MailConfiguration $config)
     {
-        $this->connection = new Protocol\SMTP($options);
+        $this->connection = new Protocol\SMTP($config);
     }
 
     /**

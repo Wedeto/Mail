@@ -41,6 +41,7 @@ namespace Wedeto\Mail;
 
 use PHPUnit\Framework\TestCase;
 use Wedeto\Mail\Protocol\SMTPProtocolSpy;
+use Wedeto\Util\Configuration;
 
 require_once __DIR__ . '/Protocol/SMTPProtocolSpy.php';
 
@@ -54,8 +55,10 @@ class SMTPSenderTest extends TestCase
 
     public function setUp()
     {
-        $this->transport = new SMTPSender();
-        $this->connection = new SMTPProtocolSpy();
+        $config = new Configuration();
+        $this->config = new MailConfiguration($config);
+        $this->transport = new SMTPSender($this->config);
+        $this->connection = new SMTPProtocolSpy($this->config);
         $this->transport->setConnection($this->connection);
     }
 
@@ -221,19 +224,5 @@ class SMTPSenderTest extends TestCase
         $this->assertFalse($this->connection->hasSession());
         $this->transport->send($this->getMessage());
         $this->assertTrue($this->connection->hasSession());
-    }
-
-    public function testOptions()
-    {
-        $expected = ['foo' => 'bar'];
-        $this->transport = new SMTPSender(['foo' => 'bar']);
-        $this->assertTrue(isset($this->transport->getOptions()['foo']));
-        $this->assertEquals($expected['foo'], $this->transport->getOptions()['foo']);
-
-        $expected2 = $expected;
-        $expected2['baz'] = 'boo';
-        $this->assertSame($this->transport, $this->transport->setOptions($expected2));
-        $this->assertTrue(isset($this->transport->getOptions()['baz']));
-        $this->assertEquals($expected2['baz'], $this->transport->getOptions()['baz']);
     }
 }

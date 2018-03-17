@@ -42,8 +42,13 @@ namespace Wedeto\Mail\Protocol;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
+use InvalidArgumentException;
+
 use Wedeto\Mail\Message;
 use Wedeto\Mail\SMTPSender;
+
+use Wedeto\Util\Configuration;
+use Wedeto\Mail\MailConfiguration;
 
 require_once __DIR__ . '/SMTPProtocolSpy.php';
 
@@ -58,8 +63,10 @@ class SMTPTest extends TestCase
 
     public function setUp()
     {
-        $this->transport = new SMTPSender();
-        $this->connection = new SMTPProtocolSpy();
+        $config = new Configuration();
+        $this->config = new MailConfiguration($config);
+        $this->transport = new SMTPSender($this->config);
+        $this->connection = new SMTPProtocolSpy($this->config);
         $this->transport->setConnection($this->connection);
     }
 
@@ -132,7 +139,7 @@ class SMTPTest extends TestCase
 
     public function testConnectHasVerboseErrors()
     {
-        $smtp = new ErroneousSMTP();
+        $smtp = new ErroneousSMTP($this->config);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('nonexistentremote');
@@ -156,9 +163,12 @@ class SMTPTest extends TestCase
 
     public function testPlainLogin()
     {
-        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'PLAIN']);
+        $this->config['username'] = 'foo';
+        $this->config['password'] = 'loremipsum';
+        $this->config['auth_type'] = 'PLAIN';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
-        $this->assertTrue(is_array($opts));
+        $this->assertTrue($opts instanceof MailConfiguration);
         $this->assertEquals('foo', $opts['username']);
         $this->assertEquals('loremipsum', $opts['password']);
         $this->assertEquals('PLAIN', $opts['auth_type']);
@@ -175,9 +185,11 @@ class SMTPTest extends TestCase
 
     public function testPlainLoginWithoutAuthType()
     {
-        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum']);
+        $this->config['username'] = 'foo';
+        $this->config['password'] = 'loremipsum';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
-        $this->assertTrue(is_array($opts));
+        $this->assertTrue($opts instanceof MailConfiguration);
         $this->assertEquals('foo', $opts['username']);
         $this->assertEquals('loremipsum', $opts['password']);
         $this->assertEquals('PLAIN', $opts['auth_type']);
@@ -194,9 +206,12 @@ class SMTPTest extends TestCase
 
     public function testLoginLogin()
     {
-        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'LOGIN']);
+        $this->config['username'] = 'foo';
+        $this->config['password'] = 'loremipsum';
+        $this->config['auth_type'] = 'LOGIN';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
-        $this->assertTrue(is_array($opts));
+        $this->assertTrue($opts instanceof MailConfiguration);
         $this->assertEquals('foo', $opts['username']);
         $this->assertEquals('loremipsum', $opts['password']);
         $this->assertEquals('LOGIN', $opts['auth_type']);
@@ -213,9 +228,12 @@ class SMTPTest extends TestCase
 
     public function testCRAMMD5Login()
     {
-        $this->connection->setOptions(['username' => 'foo', 'password' => 'loremipsum', 'auth_type' => 'CRAM-MD5']);
+        $this->config['username'] = 'foo';
+        $this->config['password'] = 'loremipsum';
+        $this->config['auth_type'] = 'CRAM-MD5';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
-        $this->assertTrue(is_array($opts));
+        $this->assertTrue($opts instanceof MailConfiguration);
         $this->assertEquals('foo', $opts['username']);
         $this->assertEquals('loremipsum', $opts['password']);
         $this->assertEquals('CRAM-MD5', $opts['auth_type']);
@@ -264,103 +282,96 @@ class SMTPTest extends TestCase
 
     public function testValidateSSLOptions()
     {
-        $this->connection->setOptions(['ssl' => 'ssl', 'port' => '466']);
+        $this->config['ssl'] = 'ssl';
+        $this->config['port'] = '466';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
         $this->assertEquals(466, $opts['port']);
         $this->assertEquals('ssl', $this->connection->getSecure());
         $this->assertEquals('ssl', $this->connection->getTransport());
 
-        $this->connection->setOptions(['ssl' => 'ssl']);
+        $this->config['ssl'] = 'ssl';
+        unset($this->config['port']);
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
         $this->assertEquals(465, $opts['port']);
         $this->assertEquals('ssl', $this->connection->getSecure());
         $this->assertEquals('ssl', $this->connection->getTransport());
 
-        $this->connection->setOptions(['ssl' => 'tls', 'port' => '466']);
+        $this->config['ssl'] = 'tls';
+        $this->config['port'] = 466;
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
         $this->assertEquals(466, $opts['port']);
         $this->assertEquals('tls', $this->connection->getSecure());
         $this->assertEquals('tcp', $this->connection->getTransport());
 
-        $this->connection->setOptions(['ssl' => 'tls']);
+        $this->config['ssl'] = 'tls';
+        $this->connection->setOptions($this->config);
         $opts = $this->connection->getOptions();
         $this->assertEquals('tls', $this->connection->getSecure());
         $this->assertEquals('tcp', $this->connection->getTransport());
     }
 
-    public function testInvalidHostname()
-    {
-        $this->expectException(ProtocolException::class);
-        $this->expectExceptionMessage('Invalid hostname');
-        $this->connection->setOptions(['host' => 3]);
-    }
-
-    public function testInvalidAuthTypeInt()
-    {
-        $this->expectException(ProtocolException::class);
-        $this->expectExceptionMessage('Invalid authentication type');
-        $this->connection->setOptions(['auth_type' => 3]);
-    }
-
     public function testInvalidAuthType()
     {
-        $this->expectException(ProtocolException::class);
-        $this->expectExceptionMessage('Invalid authentication type: "FOO"');
-        $this->connection->setOptions(['auth_type' => 'foo']);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid authentication type: foo');
+        $mailconfig = new MailConfiguration();
+        $mailconfig['auth_type'] = 'foo';
     }
 
     public function testSetAuthTypeWithoutUsername()
     {
         $this->expectException(ProtocolException::class);
         $this->expectExceptionMessage('Authentication requires username and password');
-        $this->connection->setOptions(['auth_type' => 'login']);
+        $mailconfig = new MailConfiguration();
+        $mailconfig['auth_type'] = 'login';
+        $this->connection->setOptions($mailconfig);
     }
 
     public function testSetAuthTypeWithoutPassword()
     {
         $this->expectException(ProtocolException::class);
         $this->expectExceptionMessage('Authentication requires username and password');
-        $this->connection->setOptions(['auth_type' => 'login', 'username' => 'foo']);
-    }
-
-    public function testSetNonStringSSL()
-    {
-        $this->expectException(ProtocolException::class);
-        $this->expectExceptionMessage('Invalid SSL type');
-        $this->connection->setOptions(['ssl' => 1]);
+        $mailconfig = new MailConfiguration();
+        $mailconfig['auth_type'] = 'login';
+        $mailconfig['username'] = 'foo';
+        $this->connection->setOptions($mailconfig);
     }
 
     public function testSetSSLWithInvalidString()
     {
-        $this->expectException(ProtocolException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid SSL type: foo');
-        $this->connection->setOptions(['ssl' => 'foo']);
-    }
-
-    public function testSetInvalidHELOType()
-    {
-        $this->expectException(ProtocolException::class);
-        $this->expectExceptionMessage('Invalid HELO specified');
-        $this->connection->setOptions(['helo' => 3]);
+        $mailconfig = new MailConfiguration();
+        $mailconfig['ssl'] = 'foo';
+        $this->connection->setOptions($mailconfig);
     }
 
     public function testSetInvalidHELOHost()
     {
         $this->expectException(ProtocolException::class);
         $this->expectExceptionMessage('Unresolvable HELO specified');
-        $this->connection->setOptions(['helo' => 'this.host.should.hopefully.not.exist.top.level.wedeto']);
+        $mailconfig = new MailConfiguration();
+        $mailconfig['helo'] = 'this.host.should.hopefully.not.exist.top.level.wedeto';
+        $this->connection->setOptions($mailconfig);
     }
 
     public function testSetInvalidServerHost()
     {
         $this->expectException(ProtocolException::class);
         $this->expectExceptionMessage('Invalid SMTP server host');
-        $this->connection->setOptions(['host' => 'this.host.should.hopefully.not.exist.top.level.wedeto']);
+        $mailconfig = new MailConfiguration();
+        $mailconfig['host'] = 'this.host.should.hopefully.not.exist.top.level.wedeto';
+        $this->connection->setOptions($mailconfig);
     }
 
     public function testGetHostAndPort()
     {
-        $this->connection->setOptions(['host' => 'wedeto.net', 'port' => 123]);
+        $this->config['host'] = 'wedeto.net';
+        $this->config['port'] = 123;
+        $this->connection->setOptions($this->config);
         $this->assertEquals(123, $this->connection->getPort());
         $this->assertEquals('wedeto.net', $this->connection->getHost());
     }

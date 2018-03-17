@@ -43,6 +43,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Protocol;
 
+use Wedeto\Mail\MailConfiguration;
+
 /**
  * SMTP implementation of Zend\Mail\Protocol\AbstractProtocol
  */
@@ -86,7 +88,7 @@ class SMTP extends AbstractProtocol
      * @param array $config The configuration. The default is a connection to localhost
      * @throws ProtocolException On an invalid SSL type
      */
-    public function __construct(array $config = array())
+    public function __construct(MailConfiguration $config)
     {
         $this->setOptions($config);
     }
@@ -96,7 +98,7 @@ class SMTP extends AbstractProtocol
      * @param array $config The options to set
      * @return SMTP Provides fluent interface
      */
-    public function setOptions(array $config)
+    public function setOptions(MailConfiguration $config)
     {
         $config = $this->validateOptions($config);
 
@@ -139,7 +141,7 @@ class SMTP extends AbstractProtocol
      * @return array The completed, verified options.
      * @throws ProtocolException When the configuration is incomplete
      */
-    public static function validateOptions(array $options)
+    public static function validateOptions(MailConfiguration $options)
     {
         if (!empty($options['host']) && !is_string($options['host']))
             throw new ProtocolException('Invalid hostname');

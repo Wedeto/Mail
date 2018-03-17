@@ -41,6 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Wedeto\Mail\Protocol;
 
+use Wedeto\Mail\MailConfiguration;
+
 /**
  * Provides low-level methods for concrete adapters to communicate with a
  * remote mail server and track requests and responses.
@@ -88,12 +90,12 @@ abstract class AbstractProtocol
      * @param array $config Configuration for server
      * @throws Exception\RuntimeException
      */
-    public function __construct(array $config = [])
+    public function __construct(MailConfiguration $config)
     {
         $this->setOptions($config);
     }
 
-    public function setOptions(array $config)
+    public function setOptions(MailConfiguration $config)
     {
         $host = $config['host'] ?? 'localhost';
         $port = $config['port'] ?? 25;
