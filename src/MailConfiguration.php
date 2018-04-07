@@ -75,6 +75,6 @@ class MailConfiguration extends configuration
             'helo' => Type::STRING
         ];
 
-        parent::__construct($allowed, $config);
+        parent::__construct($config, $allowed);
     }
 }
