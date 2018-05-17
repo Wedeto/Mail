@@ -4,8 +4,8 @@
     "description": "Wedeto Platform - SMTP Mailer",
     "homepage": "https://wedeto.net/",
     "require": {
-        "Wedeto/Util": "~0.9.35",
-        "Wedeto/IO": "~0.9.3",
+        "Wedeto/Util": "~1.0.0-beta1",
+        "Wedeto/IO": "~1.0.0-beta1",
         "php": ">=7.0.0",
         "ext-mbstring": "*"
     },
