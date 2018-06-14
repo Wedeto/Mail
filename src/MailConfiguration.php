@@ -35,6 +35,7 @@ namespace Wedeto\Mail;
 
 use Wedeto\Util\Configuration;
 use Wedeto\Util\Dictionary;
+use Wedeto\Util\DefVal;
 use Wedeto\Util\Validation\Type;
 use Wedeto\Util\Validation\ValidationException;
 use Wedeto\Util\Validation\Validator;
@@ -45,7 +46,7 @@ class MailConfiguration extends configuration
     const WDI_REUSABLE = true;
 
     /** It can be auto instantiated, as the dependent Configuration must be present */
-    const WDI_NOAUTO = false;
+    const WDI_NO_AUTO = false;
 
     /**
      * Create a new MailConfig instance. Suitable for use with DI.
@@ -58,7 +59,7 @@ class MailConfiguration extends configuration
             $config = new Dictionary;
 
         // Enforce types for database configuration
-        $config = $config->dget('mail', []);
+        $config = $config->dget('mail', new DefVal([]));
         $allowed = [
             'host' => Type::STRING,
             'port' => new Type(Type::INTEGER, ['unstrict' => true]),
