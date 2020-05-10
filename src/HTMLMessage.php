@@ -75,10 +75,18 @@ class HTMLMessage extends Message
         return $this;
     }
 
+    public function getHTMLPart() {
+        return $this->html_part;
+    }
+
     public function setPlain(string $text)
     {
         $this->plain_part->setContent($text);
         return $this;
+    }
+
+    public function getPlainPart() {
+        return $this->plain_part;
     }
 
     public function getBodyText()
