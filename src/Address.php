@@ -101,7 +101,9 @@ class Address
             $parts = explode('@', $email);
             if (count($parts) === 2)
             {
-                $punycoded = $parts[0] . '@' . idn_to_ascii($parts[1]);
+                $opts = IDNA_DEFAULT;
+                $var = version_compare(phpversion(), '7.2.0') < 0 ? INTL_IDNA_VARIANT_2003 : INTL_IDNA_VARIANT_UTS46;
+                $punycoded = $parts[0] . '@' . idn_to_ascii($parts[1], $opts, $var);
                 $filtered = filter_var($punycoded, FILTER_VALIDATE_EMAIL);
             }
         }
@@ -145,10 +147,13 @@ class Address
         // E-mail address part
         $email = $this->getEmail();
 
+        $opts = IDNA_DEFAULT;
+        $var = version_compare(phpversion(), '7.2.0') < 0 ? INTL_IDNA_VARIANT_2003 : INTL_IDNA_VARIANT_UTS46;
+
         if (preg_match('/^(.+)@([^@]+)$/', $email, $matches))
         {
             $localPart = $matches[1];
-            $hostname = \idn_to_ascii($matches[2]);
+            $hostname = \idn_to_ascii($matches[2], $opts, $var);
             $email = sprintf('%s@%s', $localPart, $hostname);
         }
 
