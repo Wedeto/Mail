@@ -56,7 +56,7 @@ class MessageTest extends TestCase
     {
         $msg = new Message();  // No Parts
         $p = $msg->getParts();
-        $this->assertInternalType('array', $p);
+        $this->assertIsArray($p);
         $this->assertEmpty($p);
 
         $p2 = [];
@@ -64,7 +64,7 @@ class MessageTest extends TestCase
         $p2[] = new Part('This is another test');
         $msg->setParts($p2);
         $p = $msg->getParts();
-        $this->assertInternalType('array', $p);
+        $this->assertIsArray($p);
         $this->assertCount(2, $p);
     }
 
@@ -100,8 +100,8 @@ class MessageTest extends TestCase
             $this->assertNotFalse($p2);
         }
         // check if the two test messages appear:
-        $this->assertContains('This is a test', $res);
-        $this->assertContains('This is another test', $res);
+        $this->assertStringContainsString('This is a test', $res);
+        $this->assertStringContainsString('This is another test', $res);
         // ... more in ZMailTest
     }
 

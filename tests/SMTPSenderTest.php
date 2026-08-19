@@ -53,7 +53,7 @@ class SMTPSenderTest extends TestCase
     public $transport;
     public $connection;
 
-    public function setUp()
+    public function setUp(): void
     {
         $config = new Configuration();
         $this->config = new MailConfiguration($config);
@@ -123,7 +123,7 @@ class SMTPSenderTest extends TestCase
 
         $this->transport->send($message);
 
-        $this->assertContains($expectedMessage, $this->connection->getLog());
+        $this->assertStringContainsString($expectedMessage, $this->connection->getLog());
     }
 
     public function testSendMinimalMailWithoutSender()
@@ -142,7 +142,7 @@ class SMTPSenderTest extends TestCase
 
         $this->transport->send($message);
 
-        $this->assertContains($expectedMessage, $this->connection->getLog());
+        $this->assertStringContainsString($expectedMessage, $this->connection->getLog());
     }
 
     public function testReceivesMailArtifacts()
@@ -154,16 +154,16 @@ class SMTPSenderTest extends TestCase
         $this->assertEquals($expectedRecipients, $this->connection->getRecipients());
 
         $data = $this->connection->getLog();
-        $this->assertContains('MAIL FROM:<foobar@wedeto.net>', $data);
-        $this->assertContains('To: Wedeto DevTeam <wedeto@wedeto.net>', $data);
-        $this->assertContains('Subject: Testing Zend\Mail\Transport\Sendmail', $data);
-        $this->assertContains("Cc: johndoe@wedeto.net\r\n", $data);
-        $this->assertContains("RCPT TO:<somepeople@lists.wedeto.net>\r\n", $data);
-        $this->assertNotContains("Bcc: \"Some Team, Wedeto Project\" <somepeople@lists.wedeto.net>\r\n", $data);
-        $this->assertContains("From: wedeto@wedeto.net,\r\n John Doe <johndoe@wedeto.net>\r\n", $data);
-        $this->assertContains("X-Foo-Bar: John Doe\r\n", $data);
-        $this->assertContains("Sender: Foo Bar <foobar@wedeto.net>\r\n", $data);
-        $this->assertContains("\r\n\r\nThis is only a test.", $data, $data);
+        $this->assertStringContainsString('MAIL FROM:<foobar@wedeto.net>', $data);
+        $this->assertStringContainsString('To: Wedeto DevTeam <wedeto@wedeto.net>', $data);
+        $this->assertStringContainsString('Subject: Testing Zend\Mail\Transport\Sendmail', $data);
+        $this->assertStringContainsString("Cc: johndoe@wedeto.net\r\n", $data);
+        $this->assertStringContainsString("RCPT TO:<somepeople@lists.wedeto.net>\r\n", $data);
+        $this->assertStringNotContainsString("Bcc: \"Some Team, Wedeto Project\" <somepeople@lists.wedeto.net>\r\n", $data);
+        $this->assertStringContainsString("From: wedeto@wedeto.net,\r\n John Doe <johndoe@wedeto.net>\r\n", $data);
+        $this->assertStringContainsString("X-Foo-Bar: John Doe\r\n", $data);
+        $this->assertStringContainsString("Sender: Foo Bar <foobar@wedeto.net>\r\n", $data);
+        $this->assertStringContainsString("\r\n\r\nThis is only a test.", $data, $data);
     }
 
     public function testReusingConnectionIssuesRset()

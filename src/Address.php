@@ -61,7 +61,7 @@ class Address
      * @param string $name The name of the recipient
      * @throws InvalidArgumentException when the e-mail address is not valid
      */
-    public function __construct($email, string $name = null)
+    public function __construct($email, ?string $name = null)
     {
         if (is_array($email))
         {

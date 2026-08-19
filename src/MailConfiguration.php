@@ -53,7 +53,7 @@ class MailConfiguration extends configuration
      *
      * @param Configuration $config The complete configuration object
      */
-    public function __construct(Configuration $config = null)
+    public function __construct(?Configuration $config = null)
     {
         if (null === $config)
             $config = new Dictionary;

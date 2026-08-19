@@ -145,7 +145,7 @@ class Message
      * @param string $name The recipient's name. Omit when using an array as $address
      * @return Message Provides fluent interface
      */
-    public function setFrom($address, string $name = null)
+    public function setFrom($address, ?string $name = null)
     {
         $this->addAddresses('From', $address, $name, true);
         return $this;
@@ -154,7 +154,7 @@ class Message
     /**
      * Add a set of addresses to the specified header
      */
-    protected function addAddresses(string $header, $address, string $name = null, bool $replace = false)
+    protected function addAddresses(string $header, $address, ?string $name = null, bool $replace = false)
     {
         if (is_string($address))
             $address = [new Address($address, $name)];
@@ -206,7 +206,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function addFrom($address, string $name = null)
+    public function addFrom($address, ?string $name = null)
     {
         return $this->addAddresses('From', $address, $name, false);
     }
@@ -228,7 +228,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function setTo($address, string $name = null)
+    public function setTo($address, ?string $name = null)
     {
         return $this->addAddresses('To', $address, $name, true);
     }
@@ -241,7 +241,7 @@ class Message
      * @param string|null $name
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function addTo($address, string $name = null)
+    public function addTo($address, ?string $name = null)
     {
         return $this->addAddresses('To', $address, $name, false);
     }
@@ -366,7 +366,7 @@ class Message
      * @param string|null $name The name of the sender
      * @return Wedeto\Mail\Message Provides fluent interface
      */
-    public function setSender(string $address, string $name = null)
+    public function setSender(string $address, ?string $name = null)
     {
         return $this->addAddresses('Sender', $address, $name, true);
     }

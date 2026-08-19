@@ -100,7 +100,7 @@ class SMTPProtocolSpy extends SMTP
         $this->expect_response = $resp;
     }
 
-    protected function _expect($code, int $timeout = null)
+    protected function _expect($code, ?int $timeout = null)
     {
         $this->response = $this->expect_response;
         $this->expect_response = '';

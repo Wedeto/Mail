@@ -208,7 +208,7 @@ class Header implements Iterator
      * @param string $name The name for the address.
      * @param bool $append Whether to append the address
      */
-	public function addAddress(string $header, $email, string $name = null, bool $append = true)
+	public function addAddress(string $header, $email, ?string $name = null, bool $append = true)
 	{
         $header = self::normalizeHeader($header);
         if (!in_array($header, self::$ADDRESS_HEADERS))
@@ -364,6 +364,7 @@ class Header implements Iterator
     /**
      * @return string The current header value
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $key = $this->key();
@@ -376,6 +377,7 @@ class Header implements Iterator
     /**
      * Return the currenct key
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->keys[$this->iterator];
@@ -384,7 +386,7 @@ class Header implements Iterator
     /**
      * Advance the iterator position
      */
-    public function next()
+    public function next(): void
     {
         ++$this->iterator;
     }
@@ -392,7 +394,7 @@ class Header implements Iterator
     /**
      * Set the iterator to the first element
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->keys = array_keys($this->header_fields);
         $this->iterator = 0;
@@ -401,7 +403,7 @@ class Header implements Iterator
     /**
      * @return bool True if the iterator is valid, false if it is not
      */
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->keys[$this->iterator]) && isset($this->header_fields[$this->keys[$this->iterator]]);
     }

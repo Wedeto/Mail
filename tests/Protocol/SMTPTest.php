@@ -61,7 +61,7 @@ class SMTPTest extends TestCase
     public $transport;
     public $connection;
 
-    public function setUp()
+    public function setUp(): void
     {
         $config = new Configuration();
         $this->config = new MailConfiguration($config);
@@ -369,11 +369,11 @@ class SMTPTest extends TestCase
 
     public function testGetHostAndPort()
     {
-        $this->config['host'] = 'wedeto.net';
+        $this->config['host'] = 'localhost';
         $this->config['port'] = 123;
         $this->connection->setOptions($this->config);
         $this->assertEquals(123, $this->connection->getPort());
-        $this->assertEquals('wedeto.net', $this->connection->getHost());
+        $this->assertEquals('localhost', $this->connection->getHost());
     }
 
     public function testSetAndGetLogSize()

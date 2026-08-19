@@ -52,7 +52,7 @@ class HTMLMessageTest extends TestCase
 
         $body = $message->getBody();
         $this->assertInstanceOf(Mime\Message::class, $body);
-        $this->assertContains(Mime\Mime::MULTIPART_ALTERNATIVE, $message->getHeader()->getContentType(Header::FORMAT_ENCODED));
+        $this->assertStringContainsString(Mime\Mime::MULTIPART_ALTERNATIVE, $message->getHeader()->getContentType(Header::FORMAT_ENCODED));
 
         $message->setHTML('<h1>Head</h1><p>Foo</p>');
 
@@ -84,7 +84,7 @@ MSG;
 
         $body = $message->getBody();
         $this->assertInstanceOf(Mime\Message::class, $body);
-        $this->assertContains(Mime\Mime::MULTIPART_ALTERNATIVE, $message->getHeader()->getContentType(Header::FORMAT_ENCODED));
+        $this->assertStringContainsString(Mime\Mime::MULTIPART_ALTERNATIVE, $message->getHeader()->getContentType(Header::FORMAT_ENCODED));
 
         $message->setPlain('head foo');
 

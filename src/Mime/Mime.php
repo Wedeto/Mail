@@ -100,7 +100,7 @@ class Mime
     public static function encode(
         string $str,
         string $scheme,
-        string $header = null,
+        ?string $header = null,
         string $eol = Mime::LINEEND
     )
     {
@@ -142,12 +142,24 @@ class Mime
             if (!$valid_encoding)
                 return false;
 
-            // Perform encoding 
-            $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
-            
+            $original_encoding = $encoding;
             $lc_enc = strtolower($encoding);
-            if (strpos($lc_enc, "utf-32") !== false || strpos($lc_enc, "utf-16") !== false)
-                $str = str_replace(chr(0), '', $str);
+            $wide_encoding = strpos($lc_enc, "utf-32") !== false || strpos($lc_enc, "utf-16") !== false;
+            if ($wide_encoding)
+            {
+                // Wide encodings contain zero bytes that older mbstring
+                // versions stripped from encoded words. Normalize them to a
+                // portable UTF-8 MIME header instead.
+                $str = mb_convert_encoding($str, 'UTF-8', $encoding);
+                $encoding = 'UTF-8';
+                mb_internal_encoding($encoding);
+            }
+
+            // Perform encoding
+            $str = mb_encode_mimeheader($str, $encoding, $scheme, $eol, $prefix_length);
+
+            if ($wide_encoding)
+                mb_internal_encoding($original_encoding);
         }
 
         // Return encoded string
@@ -157,7 +169,7 @@ class Mime
     /**
      * Encode the string using Quoted-Printable, suitable for a body message
      */
-    public function qprint($str, $eol = Mime::LINEEND)
+    public static function qprint($str, $eol = Mime::LINEEND)
     {
         $str = quoted_printable_encode($str);
 

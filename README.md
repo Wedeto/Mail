@@ -1,5 +1,7 @@
 # Wedeto\Mail
 
+Requires PHP 7.4 or PHP 8.1 and newer. PHP 8.0 is not supported.
+
 Mail is a class to send mails using a SMTP server. It was derived from
 Zend\Mail, which is the reason it is published using the New BSD license rather
 than MIT, like the rest of Wedeto.
@@ -124,4 +126,3 @@ That's it, it's sent!
 Of course, you can also compile your own message using Wedeto\Mail\Message,
 building a message using Wedeto\Mail\Mime\Message and Wedeto\Mail\Mime\Part, much
 in the same way as you can with Zend\Mail and Zend\Mime.
-

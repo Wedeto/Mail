@@ -55,7 +55,7 @@ class PartTest extends TestCase
     /** MIME part test text */
     protected $testText;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->testText = 'safdsafsa�lg ��gd�� sd�jg�sdjg�ld�gksd�gj�sdfg�dsj'
             .'�gjsd�gj�dfsjg�dsfj�djs�g kjhdkj fgaskjfdh gksjhgjkdh gjhfsdghdhgksdjhg';
@@ -80,7 +80,7 @@ class PartTest extends TestCase
         $actual = $this->part->getHeaders();
 
         foreach ($expectedHeaders as $expected) {
-            $this->assertContains($expected, $actual);
+            $this->assertStringContainsString($expected, $actual);
         }
     }
 
@@ -106,22 +106,22 @@ class PartTest extends TestCase
 
         // Test Base64
         $fp = fopen($testfile, 'rb');
-        $this->assertInternalType('resource', $fp);
+        $this->assertIsResource($fp);
         $part = new Part($fp);
         $part->setEncoding(Mime::ENCODING_BASE64);
         $fp2 = $part->getEncodedStream();
-        $this->assertInternalType('resource', $fp2);
+        $this->assertIsResource($fp2);
         $encoded = stream_get_contents($fp2);
         fclose($fp);
         $this->assertEquals(base64_decode($encoded), $original);
 
         // test QuotedPrintable
         $fp = fopen($testfile, 'rb');
-        $this->assertInternalType('resource', $fp);
+        $this->assertIsResource($fp);
         $part = new Part($fp);
         $part->setEncoding(Mime::ENCODING_QUOTEDPRINTABLE);
         $fp2 = $part->getEncodedStream();
-        $this->assertInternalType('resource', $fp2);
+        $this->assertIsResource($fp2);
         $encoded = stream_get_contents($fp2);
         fclose($fp);
         $this->assertEquals(quoted_printable_decode($encoded), $original);
@@ -249,7 +249,7 @@ class PartTest extends TestCase
         }
         catch (MailException $e)
         {
-            $this->assertContains('Attempt to get a stream from a string', $e->getMessage());
+            $this->assertStringContainsString('Attempt to get a stream from a string', $e->getMessage());
             $thrown = true;
         }
 
@@ -296,7 +296,7 @@ class PartTest extends TestCase
         }
         catch (MailException $e)
         {
-            $this->assertContains('You should provide a disposition', $e->getMessage());
+            $this->assertStringContainsString('You should provide a disposition', $e->getMessage());
             $thrown = true;
         }
         $this->assertTrue($thrown);
@@ -310,7 +310,7 @@ class PartTest extends TestCase
         }
         catch (MailException $e)
         {
-            $this->assertContains('You should provide a filename', $e->getMessage());
+            $this->assertStringContainsString('You should provide a filename', $e->getMessage());
             $thrown = true;
         }
         $this->assertTrue($thrown);

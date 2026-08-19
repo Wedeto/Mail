@@ -51,13 +51,13 @@ class MimeTest extends TestCase
     /** Stores the original set timezone */
     protected $_originaltimezone;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->_originaltimezone = date_default_timezone_get();
         mb_internal_encoding("UTF-8");
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         date_default_timezone_set($this->_originaltimezone);
         mb_internal_encoding("UTF-8");
@@ -144,7 +144,7 @@ class MimeTest extends TestCase
     {
         $text   = "my body\r\n\r\n...after two newlines\r\n ";
         $result = quoted_printable_decode(Mime::encode($text, 'Q'));
-        $this->assertContains("my body\r\n\r\n...after two newlines", $result, $result);
+        $this->assertStringContainsString("my body\r\n\r\n...after two newlines", $result, $result);
     }
 
     /**
@@ -252,7 +252,7 @@ class MimeTest extends TestCase
         }
         catch (InvalidArgumentException $e)
         {
-            $this->assertContains('Invalid characters in 7-bit encoding', $e->getMessage());
+            $this->assertStringContainsString('Invalid characters in 7-bit encoding', $e->getMessage());
             $thrown = true;
         }
 
@@ -287,7 +287,7 @@ class MimeTest extends TestCase
 
         mb_internal_encoding("UTF-32LE");
         $encoded = Mime::encode($utf32, 'Q', 'Subject');
-        $this->assertEquals('Subject: =?UTF-32LE?Q?f=F6=F6=20b=E4r?=', $encoded);
+        $this->assertEquals('Subject: =?UTF-8?Q?f=C3=B6=C3=B6=20b=C3=A4r?=', $encoded);
         $this->assertFalse(Mime::encode($utf8, 'Q', 'Subject'));
         $this->assertFalse(Mime::encode($iso88591, 'Q', 'Subject'));
     }

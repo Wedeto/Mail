@@ -51,7 +51,7 @@ class MessageTest extends TestCase
     /** @var Message */
     public $message;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->message = new Message();
     }
@@ -102,7 +102,7 @@ class MessageTest extends TestCase
             catch (MailException $e)
             {
                 $thrown = true;
-                $this->assertContains('Invalid address', $e->getMessage());
+                $this->assertStringContainsString('Invalid address', $e->getMessage());
             }
             $this->assertTrue($thrown, "Calling $func with invalid address does not throw an exception");
         }
@@ -594,7 +594,7 @@ class MessageTest extends TestCase
         $this->message->setEncoding('UTF-8');
         $this->message->setBody($body);
 
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Content-Type: text/plain;' . Header::EOL_FOLD . 'charset="utf-8"' . Header::EOL
             . 'Content-Transfer-Encoding: quoted-printable' . Header::EOL,
             $this->message->getHeader()->toString()
@@ -640,10 +640,10 @@ class MessageTest extends TestCase
 
         $text = $this->message->getBodyText();
         $this->assertEquals($body->generateMessage(Header::EOL), $text);
-        $this->assertContains('--foo-bar', $text);
-        $this->assertContains('--foo-bar--', $text);
-        $this->assertContains('Content-Type: text/plain', $text);
-        $this->assertContains('Content-Type: text/html', $text);
+        $this->assertStringContainsString('--foo-bar', $text);
+        $this->assertStringContainsString('--foo-bar--', $text);
+        $this->assertStringContainsString('Content-Type: text/plain', $text);
+        $this->assertStringContainsString('Content-Type: text/html', $text);
     }
 
     public function testEncodingIsAsciiByDefault()
@@ -727,8 +727,8 @@ class MessageTest extends TestCase
         $this->message->setSubject(implode(Header::EOL, $subject));
 
         $serializedHeaders = $this->message->getHeader()->toString();
-        $this->assertContains('example', $serializedHeaders);
-        $this->assertNotContains("\r\n<html>", $serializedHeaders);
+        $this->assertStringContainsString('example', $serializedHeaders);
+        $this->assertStringNotContainsString("\r\n<html>", $serializedHeaders);
     }
 
     public function testHeaderUnfoldingWorksAsExpectedForMultipartMessages()
@@ -762,8 +762,8 @@ class MessageTest extends TestCase
 
         $contentType = $this->message->getHeader()->get('Content-Type', Header::FORMAT_ENCODED);
         $this->assertTrue(is_string($contentType));
-        $this->assertContains('multipart/alternative', $contentType);
-        $this->assertContains($multipartContent->getMime()->boundary(), $contentType);
+        $this->assertStringContainsString('multipart/alternative', $contentType);
+        $this->assertStringContainsString($multipartContent->getMime()->boundary(), $contentType);
     }
 
     public function testToString()
